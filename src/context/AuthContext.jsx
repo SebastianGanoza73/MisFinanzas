@@ -6,7 +6,9 @@ const AuthContext = createContext()
 const MINUTOS_INACTIVIDAD = 2
 const SEGUNDOS_AVISO_PREVIO = 20
 
+
 export function AuthProvider({ children }) {
+
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [necesitaPassword, setNecesitaPassword] = useState(false)
@@ -17,8 +19,11 @@ export function AuthProvider({ children }) {
   const logoutTimeoutRef = useRef(null)
 
 
-  // Revisar si el usuario Google tiene contraseña creada
+
   const verificarPasswordGoogle = async (usuario) => {
+
+    console.log("Revisando usuario:", usuario.email)
+
 
     const { data, error } = await supabase
       .from('profiles')
@@ -27,62 +32,102 @@ export function AuthProvider({ children }) {
       .maybeSingle()
 
 
-    // Si no existe perfil, lo creamos
+
+    console.log("Perfil encontrado:", data)
+
+
+
+    if (error) {
+
+      console.error(
+        "Error buscando profile:",
+        error
+      )
+
+      return
+
+    }
+
+
+
     if (!data) {
 
-      const { error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: usuario.id,
-          email: usuario.email,
-          display_name: usuario.user_metadata?.full_name || '',
-          provider: 'google',
-          has_password: false
-        })
+      console.log("No existe profile, creando...")
+
+
+      const { error: insertError } =
+        await supabase
+          .from('profiles')
+          .insert({
+            user_id: usuario.id,
+            email: usuario.email,
+            display_name: usuario.user_metadata?.full_name || '',
+            provider: 'google',
+            has_password: false
+          })
 
 
       if (insertError) {
+
         console.error(
-          'Error creando perfil:',
+          "Error creando profile:",
           insertError
         )
+
         return
+
       }
 
 
       setNecesitaPassword(true)
+
       return
+
     }
 
-
-    if (error) {
-      console.error(
-        'Error revisando perfil:',
-        error
-      )
-      return
-    }
 
 
     if (
       data.provider === 'google' &&
       data.has_password === false
     ) {
+
+      console.log(
+        "USUARIO NECESITA PASSWORD"
+      )
+
+
       setNecesitaPassword(true)
+
+
     } else {
+
+
+      console.log(
+        "USUARIO NORMAL"
+      )
+
+
       setNecesitaPassword(false)
+
     }
 
   }
 
 
 
+
+
   const signOut = () => {
+
     setMostrarAviso(false)
     setNecesitaPassword(false)
 
     return supabase.auth.signOut()
+
   }
+
+
 
 
 
@@ -91,10 +136,13 @@ export function AuthProvider({ children }) {
     if (avisoTimeoutRef.current)
       clearTimeout(avisoTimeoutRef.current)
 
+
     if (logoutTimeoutRef.current)
       clearTimeout(logoutTimeoutRef.current)
 
   }
+
+
 
 
 
@@ -105,46 +153,93 @@ export function AuthProvider({ children }) {
     setMostrarAviso(false)
 
 
-    const msTotal =
+    const total =
       MINUTOS_INACTIVIDAD * 60 * 1000
-
-
-    const msAviso =
-      msTotal - SEGUNDOS_AVISO_PREVIO * 1000
-
 
 
     avisoTimeoutRef.current =
       setTimeout(() => {
+
         setMostrarAviso(true)
-      }, msAviso)
+
+      }, total - SEGUNDOS_AVISO_PREVIO * 1000)
 
 
 
     logoutTimeoutRef.current =
       setTimeout(() => {
+
         signOut()
-      }, msTotal)
+
+      }, total)
 
   }
+
+
 
 
 
   const continuarSesion = () => {
+
     reiniciarTemporizador()
+
   }
+
+
 
 
 
   useEffect(() => {
 
 
-    supabase.auth.getSession()
-      .then(async ({ data: { session } }) => {
+    const iniciar = async () => {
+
+
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession()
+
+
+
+      const usuario =
+        session?.user ?? null
+
+
+
+      setUser(usuario)
+
+
+
+      if (usuario) {
+
+        await verificarPasswordGoogle(usuario)
+
+      }
+
+
+
+      setLoading(false)
+
+
+    }
+
+
+
+    iniciar()
+
+
+
+    const {
+      data: listener
+    } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
 
 
         const usuario =
           session?.user ?? null
+
 
 
         setUser(usuario)
@@ -152,37 +247,14 @@ export function AuthProvider({ children }) {
 
 
         if (usuario) {
+
           await verificarPasswordGoogle(usuario)
-        }
-
-
-
-        setLoading(false)
-
-      })
-
-
-
-    const { data: listener } =
-      supabase.auth.onAuthStateChange(
-        async (_event, session) => {
-
-
-          const usuario =
-            session?.user ?? null
-
-
-          setUser(usuario)
-
-
-
-          if (usuario) {
-            await verificarPasswordGoogle(usuario)
-          }
-
 
         }
-      )
+
+
+      }
+    )
 
 
 
@@ -192,6 +264,7 @@ export function AuthProvider({ children }) {
 
 
   }, [])
+
 
 
 
@@ -224,20 +297,19 @@ export function AuthProvider({ children }) {
 
 
 
-    const manejarActividad = () => {
+    const actividad = () => {
 
-      if (!mostrarAviso) {
+      if (!mostrarAviso)
         reiniciarTemporizador()
-      }
 
     }
 
 
 
-    eventos.forEach(evento =>
+    eventos.forEach(e =>
       window.addEventListener(
-        evento,
-        manejarActividad
+        e,
+        actividad
       )
     )
 
@@ -245,10 +317,10 @@ export function AuthProvider({ children }) {
 
     return () => {
 
-      eventos.forEach(evento =>
+      eventos.forEach(e =>
         window.removeEventListener(
-          evento,
-          manejarActividad
+          e,
+          actividad
         )
       )
 
@@ -258,13 +330,14 @@ export function AuthProvider({ children }) {
     }
 
 
+
   }, [user])
 
 
 
 
 
-  const signUp = (email, password) =>
+  const signUp = (email,password) =>
     supabase.auth.signUp({
       email,
       password
@@ -272,7 +345,7 @@ export function AuthProvider({ children }) {
 
 
 
-  const signIn = (email, password) =>
+  const signIn = (email,password) =>
     supabase.auth.signInWithPassword({
       email,
       password
@@ -282,7 +355,7 @@ export function AuthProvider({ children }) {
 
   const signInWithGoogle = () =>
     supabase.auth.signInWithOAuth({
-      provider: 'google'
+      provider:'google'
     })
 
 
@@ -303,61 +376,32 @@ export function AuthProvider({ children }) {
       }}
     >
 
-
       {children}
-
 
 
       {mostrarAviso && (
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
 
-          <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center">
-
-
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h2 className="font-bold">
               ¿Sigues ahí?
             </h2>
 
+            <button onClick={signOut}>
+              Cerrar sesión
+            </button>
 
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Tu sesión se cerrará en {SEGUNDOS_AVISO_PREVIO} segundos por inactividad.
-            </p>
-
-
-
-            <div className="flex gap-2">
-
-
-              <button
-                onClick={signOut}
-                className="flex-1 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                Cerrar sesión
-              </button>
-
-
-
-              <button
-                onClick={continuarSesion}
-                className="flex-1 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700"
-              >
-                Sigo aquí
-              </button>
-
-
-            </div>
-
+            <button onClick={continuarSesion}>
+              Sigo aquí
+            </button>
 
           </div>
-
 
         </div>
 
       )}
-
 
 
     </AuthContext.Provider>
@@ -368,7 +412,8 @@ export function AuthProvider({ children }) {
 
 
 
+export function useAuth(){
 
-export function useAuth() {
   return useContext(AuthContext)
+
 }
