@@ -7,6 +7,8 @@ import MainLayout from './layouts/MainLayout'
 import Auth from './pages/Auth'
 import Register from './pages/Register'
 import CrearPassword from './pages/CrearPassword'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 import Inicio from './pages/Inicio'
 import Historial from './pages/Historial'
@@ -43,9 +45,9 @@ function ProtectedRoute({ children }) {
   if (!user) {
 
     return (
-      <Navigate 
-        to="/login" 
-        replace 
+      <Navigate
+        to="/login"
+        replace
       />
     )
 
@@ -132,7 +134,6 @@ function AppShell() {
 
       </Routes>
 
-
     </MainLayout>
 
   )
@@ -143,7 +144,7 @@ function AppShell() {
 
 
 
-function App() {
+export default function App() {
 
   return (
 
@@ -158,7 +159,7 @@ function App() {
 
 
 
-      {/* Registro con correo y contraseña */}
+      {/* Registro con correo */}
       <Route
         path="/register"
         element={<Register />}
@@ -166,7 +167,7 @@ function App() {
 
 
 
-      {/* Crear contraseña después de Google */}
+      {/* Primera contraseña después de Google */}
       <Route
         path="/crear-password"
         element={<CrearPassword />}
@@ -174,7 +175,23 @@ function App() {
 
 
 
-      {/* Aplicación protegida */}
+      {/* Recuperar contraseña */}
+      <Route
+        path="/forgot-password"
+        element={<ForgotPassword />}
+      />
+
+
+
+      {/* Nueva contraseña desde correo */}
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
+      />
+
+
+
+      {/* App protegida */}
       <Route
         path="/*"
         element={
@@ -194,7 +211,3 @@ function App() {
   )
 
 }
-
-
-
-export default App
