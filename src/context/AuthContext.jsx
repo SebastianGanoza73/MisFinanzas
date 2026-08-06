@@ -25,14 +25,11 @@ export function AuthProvider({ children }) {
   const reiniciarTemporizador = () => {
     limpiarTemporizadores()
     setMostrarAviso(false)
-
     const msTotal = MINUTOS_INACTIVIDAD * 60 * 1000
     const msAviso = msTotal - SEGUNDOS_AVISO_PREVIO * 1000
-
     avisoTimeoutRef.current = setTimeout(() => {
       setMostrarAviso(true)
     }, msAviso)
-
     logoutTimeoutRef.current = setTimeout(() => {
       signOut()
     }, msTotal)
@@ -82,8 +79,11 @@ export function AuthProvider({ children }) {
   const signIn = (email, password) =>
     supabase.auth.signInWithPassword({ email, password })
 
+  const signInWithGoogle = () =>
+    supabase.auth.signInWithOAuth({ provider: 'google' })
+
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
 
       {mostrarAviso && (
