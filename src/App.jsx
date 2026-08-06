@@ -5,6 +5,7 @@ import { useMode } from './context/ModeContext'
 import MainLayout from './layouts/MainLayout'
 
 import Auth from './pages/Auth'
+import Register from './pages/Register'
 import CrearPassword from './pages/CrearPassword'
 
 import Inicio from './pages/Inicio'
@@ -28,38 +29,45 @@ function ProtectedRoute({ children }) {
 
 
   if (loading) {
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         Cargando...
       </div>
     )
+
   }
 
 
 
   if (!user) {
+
     return (
       <Navigate 
         to="/login" 
         replace 
       />
     )
+
   }
 
 
 
   if (necesitaPassword) {
+
     return (
-      <Navigate 
-        to="/crear-password" 
-        replace 
+      <Navigate
+        to="/crear-password"
+        replace
       />
     )
+
   }
 
 
 
   return children
+
 }
 
 
@@ -73,7 +81,9 @@ function AppShell() {
 
 
   if (mode === 'lite') {
+
     return <ModoLite />
+
   }
 
 
@@ -84,40 +94,41 @@ function AppShell() {
 
       <Routes>
 
-        <Route 
-          path="/" 
-          element={<Inicio />} 
+        <Route
+          path="/"
+          element={<Inicio />}
         />
 
 
-        <Route 
-          path="/historial" 
-          element={<Historial />} 
+        <Route
+          path="/historial"
+          element={<Historial />}
         />
 
 
-        <Route 
-          path="/resumen-semanal" 
-          element={<ResumenSemanal />} 
+        <Route
+          path="/resumen-semanal"
+          element={<ResumenSemanal />}
         />
 
 
-        <Route 
-          path="/balance-mensual" 
-          element={<BalanceMensual />} 
+        <Route
+          path="/balance-mensual"
+          element={<BalanceMensual />}
         />
 
 
-        <Route 
-          path="/metas-ahorro" 
-          element={<MetasAhorro />} 
+        <Route
+          path="/metas-ahorro"
+          element={<MetasAhorro />}
         />
 
 
-        <Route 
-          path="/exportar" 
-          element={<ExportarExcel />} 
+        <Route
+          path="/exportar"
+          element={<ExportarExcel />}
         />
+
 
       </Routes>
 
@@ -125,6 +136,7 @@ function AppShell() {
     </MainLayout>
 
   )
+
 }
 
 
@@ -142,6 +154,14 @@ function App() {
       <Route
         path="/login"
         element={<Auth />}
+      />
+
+
+
+      {/* Registro con correo y contraseña */}
+      <Route
+        path="/register"
+        element={<Register />}
       />
 
 
