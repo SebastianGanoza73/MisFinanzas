@@ -12,6 +12,7 @@ export default function ForgotPassword() {
   const navigate = useNavigate()
 
 
+
   const enviarCorreo = async (e) => {
 
     e.preventDefault()
@@ -19,6 +20,7 @@ export default function ForgotPassword() {
     setMensaje('')
     setError('')
     setLoading(true)
+
 
 
     const { error } = await supabase.auth.resetPasswordForEmail(
@@ -29,23 +31,27 @@ export default function ForgotPassword() {
     )
 
 
+
     setLoading(false)
+
 
 
     if (error) {
 
       setError(error.message)
-
       return
 
     }
 
 
+
     setMensaje(
-      'Revisa tu correo. Te enviamos un enlace para cambiar tu contraseña.'
+      'Te enviamos un enlace a tu correo para cambiar la contraseña.'
     )
 
   }
+
+
 
 
 
@@ -55,6 +61,7 @@ export default function ForgotPassword() {
 
 
       <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-8">
+
 
 
         <div className="flex items-center justify-center gap-2 mb-6">
@@ -71,6 +78,7 @@ export default function ForgotPassword() {
 
 
 
+
         <h1 className="text-lg font-bold text-center text-gray-900 dark:text-gray-100 mb-2">
           Recuperar contraseña
         </h1>
@@ -78,10 +86,9 @@ export default function ForgotPassword() {
 
 
         <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-6">
-
           Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.
-
         </p>
+
 
 
 
@@ -90,6 +97,7 @@ export default function ForgotPassword() {
           onSubmit={enviarCorreo}
           className="flex flex-col gap-4"
         >
+
 
 
           <input
@@ -104,15 +112,11 @@ export default function ForgotPassword() {
 
             required
 
-            className="
-            px-3 py-2 rounded-lg text-sm
-            border border-gray-200 dark:border-gray-700
-            bg-gray-50 dark:bg-gray-800
-            text-gray-900 dark:text-gray-100
-            focus:outline-none focus:ring-2 focus:ring-brand-500
-            "
+            className="px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
 
           />
+
+
 
 
 
@@ -128,6 +132,7 @@ export default function ForgotPassword() {
 
 
 
+
           {
             mensaje && (
 
@@ -140,17 +145,13 @@ export default function ForgotPassword() {
 
 
 
+
+
           <button
 
             disabled={loading}
 
-            className="
-            bg-brand-600 hover:bg-brand-700
-            text-white font-medium
-            py-2 rounded-lg
-            transition-colors
-            disabled:opacity-50
-            "
+            className="bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 rounded-lg transition-colors disabled:opacity-50"
 
           >
 
@@ -159,7 +160,6 @@ export default function ForgotPassword() {
               ? 'Enviando...'
               : 'Enviar enlace'
             }
-
 
           </button>
 
@@ -170,17 +170,12 @@ export default function ForgotPassword() {
 
 
 
+
         <button
 
-          onClick={() => navigate('/login')}
+          onClick={()=>navigate('/login')}
 
-          className="
-          mt-5 w-full
-          text-sm
-          text-gray-500
-          hover:text-brand-600
-          transition-colors
-          "
+          className="mt-5 w-full text-sm text-brand-600 dark:text-brand-400 hover:underline"
 
         >
 
