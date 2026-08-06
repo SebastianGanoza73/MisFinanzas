@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { useCategorias } from '../hooks/useCategorias'
-import { getFechaLocal } from '../lib/formatters'
 
-export default function MovimientoModal({ tipo, movimiento, onClose, onSave }) {
+export default function MovimientoModal({ tipo, movimiento, fechaInicial, onClose, onSave }) {
   const { categorias } = useCategorias()
   const esEdicion = Boolean(movimiento)
 
   const [monto, setMonto] = useState(movimiento?.monto?.toString() ?? '')
   const [categoriaId, setCategoriaId] = useState(movimiento?.categoria_id ?? '')
   const [descripcion, setDescripcion] = useState(movimiento?.descripcion ?? '')
-  const [fecha, setFecha] = useState(movimiento?.fecha ?? getFechaLocal())
+  const [fecha, setFecha] = useState(
+    movimiento?.fecha ?? fechaInicial ?? new Date().toISOString().slice(0, 10)
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
