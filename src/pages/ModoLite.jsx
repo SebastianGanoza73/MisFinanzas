@@ -24,12 +24,6 @@ export default function ModoLite() {
   const [editando, setEditando] = useState(null)
   const [borrando, setBorrando] = useState(null)
 
-  const cambiarDia = (delta) => {
-    const d = new Date(fecha + 'T12:00:00')
-    d.setDate(d.getDate() + delta)
-    setFecha(toISO(d))
-  }
-
   const { balance, movimientosDelDia } = useMemo(() => {
     let balance = 0
     const delDia = []
@@ -88,54 +82,37 @@ export default function ModoLite() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center px-4 py-6 gap-4">
-        <div className="w-full max-w-sm flex flex-col gap-4">
-          {/* Fecha */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => cambiarDia(-1)}
-              className="w-16 h-16 shrink-0 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-3xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Día anterior"
-            >
-              ←
-            </button>
-
-            <div className="relative flex-1">
-              <div className="w-full border-2 border-brand-500 rounded-full py-4 text-center font-bold text-xl text-gray-900 dark:text-gray-100 capitalize">
-                {fechaFormateada}
-              </div>
-              <input
-                type="date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
+      <main className="flex-1 flex flex-col items-center px-4 py-6 gap-5">
+        <div className="w-full max-w-sm flex flex-col gap-5">
+          {/* Fecha — tocar abre el calendario, sin flechas */}
+          <div className="relative">
+            <div className="w-full border-4 border-brand-500 rounded-2xl py-6 px-4 text-center font-extrabold text-2xl text-gray-900 dark:text-gray-100 capitalize leading-tight">
+              {fechaFormateada}
             </div>
-
-            <button
-              onClick={() => cambiarDia(1)}
-              className="w-16 h-16 shrink-0 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-3xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Día siguiente"
-            >
-              →
-            </button>
+            <input
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              aria-label="Elegir fecha"
+            />
           </div>
 
           {!esHoy && (
             <button
               onClick={() => setFecha(toISO(new Date()))}
-              className="text-xs text-brand-600 dark:text-brand-400 font-medium -mt-2 self-center"
+              className="text-base text-brand-600 dark:text-brand-400 font-bold -mt-2 self-center underline"
             >
               Volver a hoy
             </button>
           )}
 
           {/* Saldo */}
-          <div className="w-full border-2 border-brand-500 rounded-full py-3 px-6 flex items-center justify-between">
-            <span className="font-semibold text-gray-900 dark:text-gray-100">Saldo:</span>
+          <div className="w-full border-4 border-brand-500 rounded-2xl py-6 px-6 flex flex-col items-center gap-1">
+            <span className="font-bold text-xl text-gray-900 dark:text-gray-100">Saldo</span>
             <span
-              className={`text-xl font-bold ${
-                balance < 0 ? 'text-red-500' : 'text-gray-900 dark:text-gray-100'
+              className={`text-4xl font-extrabold ${
+                balance < 0 ? 'text-red-600' : 'text-brand-700 dark:text-brand-400'
               }`}
             >
               {formatMoney(balance)}
@@ -145,46 +122,46 @@ export default function ModoLite() {
           {/* Botones */}
           <button
             onClick={() => setModalTipo('ingreso')}
-            className="w-full border-2 border-brand-500 rounded-full py-3 font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+            className="w-full border-4 border-brand-500 rounded-2xl py-6 font-extrabold text-2xl text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
           >
             Ingreso +
           </button>
 
           <button
             onClick={() => setModalTipo('egreso')}
-            className="w-full border-2 border-red-400 rounded-full py-3 font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="w-full border-4 border-red-500 rounded-2xl py-6 font-extrabold text-2xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             Gastos −
           </button>
 
           {/* Movimientos del día */}
           <div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Movimientos de la misma fecha:
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
+              Movimientos de este día:
             </p>
             {loading ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+              <p className="text-lg text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : movimientosDelDia.length === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">
+              <p className="text-lg text-gray-500 dark:text-gray-400 text-center py-6 font-medium">
                 Sin movimientos este día
               </p>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 {movimientosDelDia.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => setSeleccionado(m)}
-                    className="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2.5 hover:border-brand-400 dark:hover:border-brand-600 transition-colors text-left"
+                    className="flex items-center justify-between border-4 border-gray-300 dark:border-gray-700 rounded-2xl px-5 py-4 hover:border-brand-400 dark:hover:border-brand-600 transition-colors text-left"
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{m.categorias?.icono ?? '💰'}</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{m.categorias?.icono ?? '💰'}</span>
+                      <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {m.categorias?.nombre ?? 'Sin categoría'}
                       </span>
                     </div>
                     <span
-                      className={`text-sm font-semibold ${
-                        m.tipo === 'ingreso' ? 'text-brand-600 dark:text-brand-400' : 'text-red-500'
+                      className={`text-lg font-extrabold ${
+                        m.tipo === 'ingreso' ? 'text-brand-700 dark:text-brand-400' : 'text-red-600'
                       }`}
                     >
                       {m.tipo === 'ingreso' ? '+' : '−'} {formatMoney(m.monto)}
