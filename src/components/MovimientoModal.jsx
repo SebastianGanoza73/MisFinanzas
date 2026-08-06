@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCategorias } from '../hooks/useCategorias'
 
-export default function MovimientoModal({ tipo, movimiento, fechaInicial, onClose, onSave }) {
+export default function MovimientoModal({ tipo, movimiento, fechaInicial, ocultarFecha, onClose, onSave }) {  
   const { categorias } = useCategorias()
   const esEdicion = Boolean(movimiento)
 
@@ -79,13 +79,15 @@ export default function MovimientoModal({ tipo, movimiento, fechaInicial, onClos
             className="px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
 
-          <input
-            type="date"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-            required
-            className="px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+          {!ocultarFecha && (
+            <input
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              required
+              className="px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          )}
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
