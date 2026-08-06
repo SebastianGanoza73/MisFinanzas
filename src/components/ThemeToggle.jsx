@@ -25,10 +25,7 @@ export default function ThemeToggle() {
       <span>
         {theme === 'dark' ? '☀️' : '🌙'}
       </span>
-
-      <span className="hidden sm:inline">
-        Tema
-      </span>
+      
     </button>
   )
 }
