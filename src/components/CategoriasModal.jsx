@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useCategorias } from '../hooks/useCategorias'
+import ConfirmModal from './ConfirmModal'
 
 export default function CategoriasModal({ onClose }) {
   const { categorias, addCategoria, updateCategoria, deleteCategoria } = useCategorias()
@@ -8,6 +9,7 @@ export default function CategoriasModal({ onClose }) {
   const [icono, setIcono] = useState('💰')
   const [editId, setEditId] = useState(null)
   const [error, setError] = useState('')
+  const [borrando, setBorrando] = useState(null)
   const modalRef = useRef(null)
 
   // Cerrar con Esc
@@ -56,10 +58,13 @@ export default function CategoriasModal({ onClose }) {
     setIcono(cat.icono ?? '💰')
   }
 
-  const handleDelete = async (id) => {
-    if (confirm('¿Eliminar esta categoría? Los movimientos que la usan quedarán sin categoría.')) {
-      await deleteCategoria(id)
-    }
+  const handleDelete = (cat) => {
+    setBorrando(cat)
+  }
+
+  const confirmarBorrado = async () => {
+    await deleteCategoria(borrando.id)
+    setBorrando(null)
   }
 
   const ingresos = categorias
@@ -87,7 +92,7 @@ export default function CategoriasModal({ onClose }) {
           Editar
         </button>
         <button
-          onClick={() => handleDelete(cat.id)}
+          onClick={() => handleDelete(cat)}
           className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
         >
           Eliminar
@@ -197,6 +202,15 @@ export default function CategoriasModal({ onClose }) {
           </div>
         </div>
       </div>
+
+      {borrando && (
+        <ConfirmModal
+          title="Eliminar categoría"
+          message={`¿Eliminar "${borrando.nombre}"? Los movimientos que la usan quedarán sin categoría.`}
+          onConfirm={confirmarBorrado}
+          onCancel={() => setBorrando(null)}
+        />
+      )}
     </div>
   )
 }
