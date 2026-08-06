@@ -22,9 +22,6 @@ export function AuthProvider({ children }) {
 
   const verificarPasswordGoogle = async (usuario) => {
 
-    console.log("Revisando usuario:", usuario.email)
-
-
     const { data, error } = await supabase
       .from('profiles')
       .select('has_password, provider')
@@ -33,14 +30,10 @@ export function AuthProvider({ children }) {
 
 
 
-    console.log("Perfil encontrado:", data)
-
-
-
     if (error) {
 
       console.error(
-        "Error buscando profile:",
+        'Error buscando perfil:',
         error
       )
 
@@ -50,33 +43,36 @@ export function AuthProvider({ children }) {
 
 
 
+    // Si no existe perfil, lo crea
+
     if (!data) {
-
-      console.log("No existe profile, creando...")
-
 
       const { error: insertError } =
         await supabase
           .from('profiles')
           .insert({
+
             user_id: usuario.id,
             email: usuario.email,
             display_name: usuario.user_metadata?.full_name || '',
             provider: 'google',
             has_password: false
+
           })
+
 
 
       if (insertError) {
 
         console.error(
-          "Error creando profile:",
+          'Error creando perfil:',
           insertError
         )
 
         return
 
       }
+
 
 
       setNecesitaPassword(true)
@@ -87,26 +83,15 @@ export function AuthProvider({ children }) {
 
 
 
+
     if (
       data.provider === 'google' &&
       data.has_password === false
     ) {
 
-      console.log(
-        "USUARIO NECESITA PASSWORD"
-      )
-
-
       setNecesitaPassword(true)
 
-
     } else {
-
-
-      console.log(
-        "USUARIO NORMAL"
-      )
-
 
       setNecesitaPassword(false)
 
@@ -118,7 +103,7 @@ export function AuthProvider({ children }) {
 
 
 
-  const signOut = () => {
+  const signOut = async () => {
 
     setMostrarAviso(false)
     setNecesitaPassword(false)
@@ -153,8 +138,15 @@ export function AuthProvider({ children }) {
     setMostrarAviso(false)
 
 
+
     const total =
       MINUTOS_INACTIVIDAD * 60 * 1000
+
+
+
+    const aviso =
+      total - SEGUNDOS_AVISO_PREVIO * 1000
+
 
 
     avisoTimeoutRef.current =
@@ -162,7 +154,8 @@ export function AuthProvider({ children }) {
 
         setMostrarAviso(true)
 
-      }, total - SEGUNDOS_AVISO_PREVIO * 1000)
+      }, aviso)
+
 
 
 
@@ -192,7 +185,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
 
 
-    const iniciar = async () => {
+    const cargarSesion = async () => {
 
 
       const {
@@ -227,34 +220,36 @@ export function AuthProvider({ children }) {
 
 
 
-    iniciar()
+
+    cargarSesion()
 
 
 
     const {
       data: listener
-    } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    } =
+      supabase.auth.onAuthStateChange(
+        async (_event, session) => {
 
 
-        const usuario =
-          session?.user ?? null
-
-
-
-        setUser(usuario)
+          const usuario =
+            session?.user ?? null
 
 
 
-        if (usuario) {
+          setUser(usuario)
 
-          await verificarPasswordGoogle(usuario)
+
+
+          if (usuario) {
+
+            await verificarPasswordGoogle(usuario)
+
+          }
+
 
         }
-
-
-      }
-    )
+      )
 
 
 
@@ -283,6 +278,7 @@ export function AuthProvider({ children }) {
 
 
 
+
     reiniciarTemporizador()
 
 
@@ -299,33 +295,43 @@ export function AuthProvider({ children }) {
 
     const actividad = () => {
 
-      if (!mostrarAviso)
+      if (!mostrarAviso) {
+
         reiniciarTemporizador()
+
+      }
 
     }
 
 
 
-    eventos.forEach(e =>
+    eventos.forEach(evento => {
+
       window.addEventListener(
-        e,
+        evento,
         actividad
       )
-    )
+
+    })
 
 
 
     return () => {
 
-      eventos.forEach(e =>
+
+      eventos.forEach(evento => {
+
         window.removeEventListener(
-          e,
+          evento,
           actividad
         )
-      )
+
+      })
+
 
 
       limpiarTemporizadores()
+
 
     }
 
@@ -337,26 +343,40 @@ export function AuthProvider({ children }) {
 
 
 
-  const signUp = (email,password) =>
+
+
+  const signUp = (email, password) =>
     supabase.auth.signUp({
+
       email,
       password
+
     })
 
 
 
-  const signIn = (email,password) =>
+
+
+  const signIn = (email, password) =>
     supabase.auth.signInWithPassword({
+
       email,
       password
+
     })
+
+
 
 
 
   const signInWithGoogle = () =>
     supabase.auth.signInWithOAuth({
-      provider:'google'
+
+      provider: 'google'
+
     })
+
+
 
 
 
@@ -365,43 +385,79 @@ export function AuthProvider({ children }) {
   return (
 
     <AuthContext.Provider
+
       value={{
+
         user,
         loading,
+
         necesitaPassword,
+        setNecesitaPassword,
+
         signUp,
         signIn,
         signInWithGoogle,
         signOut
+
       }}
+
     >
 
       {children}
 
 
-      {mostrarAviso && (
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+      {
+        mostrarAviso && (
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4">
 
-            <h2 className="font-bold">
-              ¿Sigues ahí?
-            </h2>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
 
-            <button onClick={signOut}>
-              Cerrar sesión
-            </button>
 
-            <button onClick={continuarSesion}>
-              Sigo aquí
-            </button>
+              <h2 className="font-bold">
+                ¿Sigues ahí?
+              </h2>
+
+
+
+              <p className="text-sm text-gray-500 mb-4">
+                Tu sesión se cerrará pronto.
+              </p>
+
+
+
+              <div className="flex gap-2">
+
+
+                <button
+                  onClick={signOut}
+                  className="border rounded-lg px-4 py-2"
+                >
+                  Cerrar sesión
+                </button>
+
+
+
+                <button
+                  onClick={continuarSesion}
+                  className="bg-brand-600 text-white rounded-lg px-4 py-2"
+                >
+                  Sigo aquí
+                </button>
+
+
+              </div>
+
+
+            </div>
+
 
           </div>
 
-        </div>
+        )
+      }
 
-      )}
 
 
     </AuthContext.Provider>
@@ -412,7 +468,9 @@ export function AuthProvider({ children }) {
 
 
 
-export function useAuth(){
+
+
+export function useAuth() {
 
   return useContext(AuthContext)
 
