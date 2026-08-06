@@ -17,55 +17,117 @@ export function AuthProvider({ children }) {
   const logoutTimeoutRef = useRef(null)
 
 
+  // Revisar si el usuario Google tiene contraseña creada
   const verificarPasswordGoogle = async (usuario) => {
+
     const { data, error } = await supabase
       .from('profiles')
       .select('has_password, provider')
       .eq('user_id', usuario.id)
-      .single()
+      .maybeSingle()
 
-    if (error) {
-      console.error('Error revisando perfil:', error)
+
+    // Si no existe perfil, lo creamos
+    if (!data) {
+
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: usuario.id,
+          email: usuario.email,
+          display_name: usuario.user_metadata?.full_name || '',
+          provider: 'google',
+          has_password: false
+        })
+
+
+      if (insertError) {
+        console.error(
+          'Error creando perfil:',
+          insertError
+        )
+        return
+      }
+
+
+      setNecesitaPassword(true)
       return
     }
 
-    if (data.provider === 'google' && !data.has_password) {
+
+    if (error) {
+      console.error(
+        'Error revisando perfil:',
+        error
+      )
+      return
+    }
+
+
+    if (
+      data.provider === 'google' &&
+      data.has_password === false
+    ) {
       setNecesitaPassword(true)
     } else {
       setNecesitaPassword(false)
     }
+
   }
+
 
 
   const signOut = () => {
     setMostrarAviso(false)
     setNecesitaPassword(false)
+
     return supabase.auth.signOut()
   }
 
 
+
   const limpiarTemporizadores = () => {
-    if (avisoTimeoutRef.current) clearTimeout(avisoTimeoutRef.current)
-    if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current)
+
+    if (avisoTimeoutRef.current)
+      clearTimeout(avisoTimeoutRef.current)
+
+    if (logoutTimeoutRef.current)
+      clearTimeout(logoutTimeoutRef.current)
+
   }
+
 
 
   const reiniciarTemporizador = () => {
+
     limpiarTemporizadores()
+
     setMostrarAviso(false)
 
-    const msTotal = MINUTOS_INACTIVIDAD * 60 * 1000
-    const msAviso = msTotal - SEGUNDOS_AVISO_PREVIO * 1000
 
-    avisoTimeoutRef.current = setTimeout(() => {
-      setMostrarAviso(true)
-    }, msAviso)
+    const msTotal =
+      MINUTOS_INACTIVIDAD * 60 * 1000
 
 
-    logoutTimeoutRef.current = setTimeout(() => {
-      signOut()
-    }, msTotal)
+    const msAviso =
+      msTotal - SEGUNDOS_AVISO_PREVIO * 1000
+
+
+
+    avisoTimeoutRef.current =
+      setTimeout(() => {
+        setMostrarAviso(true)
+      }, msAviso)
+
+
+
+    logoutTimeoutRef.current =
+      setTimeout(() => {
+        signOut()
+      }, msTotal)
+
   }
+
 
 
   const continuarSesion = () => {
@@ -73,48 +135,83 @@ export function AuthProvider({ children }) {
   }
 
 
+
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const usuario = session?.user ?? null
-
-      setUser(usuario)
-
-      if (usuario) {
-        await verificarPasswordGoogle(usuario)
-      }
-
-      setLoading(false)
-    })
 
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const usuario = session?.user ?? null
+    supabase.auth.getSession()
+      .then(async ({ data: { session } }) => {
+
+
+        const usuario =
+          session?.user ?? null
+
 
         setUser(usuario)
+
+
 
         if (usuario) {
           await verificarPasswordGoogle(usuario)
         }
-      }
-    )
 
 
-    return () => listener.subscription.unsubscribe()
+
+        setLoading(false)
+
+      })
+
+
+
+    const { data: listener } =
+      supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+
+
+          const usuario =
+            session?.user ?? null
+
+
+          setUser(usuario)
+
+
+
+          if (usuario) {
+            await verificarPasswordGoogle(usuario)
+          }
+
+
+        }
+      )
+
+
+
+    return () =>
+      listener.subscription.unsubscribe()
+
+
 
   }, [])
 
 
 
+
   useEffect(() => {
+
+
     if (!user) {
+
       limpiarTemporizadores()
       setMostrarAviso(false)
+
       return
+
     }
 
 
+
     reiniciarTemporizador()
+
 
 
     const eventos = [
@@ -126,27 +223,44 @@ export function AuthProvider({ children }) {
     ]
 
 
+
     const manejarActividad = () => {
+
       if (!mostrarAviso) {
         reiniciarTemporizador()
       }
+
     }
 
 
-    eventos.forEach((evento) =>
-      window.addEventListener(evento, manejarActividad)
+
+    eventos.forEach(evento =>
+      window.addEventListener(
+        evento,
+        manejarActividad
+      )
     )
 
 
+
     return () => {
-      eventos.forEach((evento) =>
-        window.removeEventListener(evento, manejarActividad)
+
+      eventos.forEach(evento =>
+        window.removeEventListener(
+          evento,
+          manejarActividad
+        )
       )
 
+
       limpiarTemporizadores()
+
     }
 
+
   }, [user])
+
+
 
 
 
@@ -157,11 +271,13 @@ export function AuthProvider({ children }) {
     })
 
 
+
   const signIn = (email, password) =>
     supabase.auth.signInWithPassword({
       email,
       password
     })
+
 
 
   const signInWithGoogle = () =>
@@ -171,7 +287,10 @@ export function AuthProvider({ children }) {
 
 
 
+
+
   return (
+
     <AuthContext.Provider
       value={{
         user,
@@ -184,17 +303,23 @@ export function AuthProvider({ children }) {
       }}
     >
 
+
       {children}
 
 
+
       {mostrarAviso && (
+
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4">
 
+
           <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center">
+
 
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
               ¿Sigues ahí?
             </h2>
+
 
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
@@ -202,33 +327,45 @@ export function AuthProvider({ children }) {
             </p>
 
 
+
             <div className="flex gap-2">
+
 
               <button
                 onClick={signOut}
-                className="flex-1 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="flex-1 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 Cerrar sesión
               </button>
 
 
+
               <button
                 onClick={continuarSesion}
-                className="flex-1 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 transition-colors"
+                className="flex-1 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700"
               >
                 Sigo aquí
               </button>
 
+
             </div>
+
 
           </div>
 
+
         </div>
+
       )}
 
+
+
     </AuthContext.Provider>
+
   )
+
 }
+
 
 
 
