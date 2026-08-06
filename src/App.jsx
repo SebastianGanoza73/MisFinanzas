@@ -76,9 +76,54 @@ function ProtectedRoute({ children }) {
 
 
 
+function AuthenticatedRoute({ children }) {
+
+  const {
+    user,
+    loading
+  } = useAuth()
+
+
+
+  if (loading) {
+
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Cargando...
+      </div>
+    )
+
+  }
+
+
+
+  if (!user) {
+
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    )
+
+  }
+
+
+
+  return children
+
+}
+
+
+
+
+
+
 function AppShell() {
 
-  const { mode } = useMode()
+  const {
+    mode
+  } = useMode()
 
 
 
@@ -131,14 +176,15 @@ function AppShell() {
           element={<ExportarExcel />}
         />
 
-
       </Routes>
+
 
     </MainLayout>
 
   )
 
 }
+
 
 
 
@@ -159,7 +205,7 @@ export default function App() {
 
 
 
-      {/* Registro con correo */}
+      {/* Registro */}
       <Route
         path="/register"
         element={<Register />}
@@ -167,10 +213,14 @@ export default function App() {
 
 
 
-      {/* Primera contraseña después de Google */}
+      {/* Crear contraseña después de Google */}
       <Route
         path="/crear-password"
-        element={<CrearPassword />}
+        element={
+          <AuthenticatedRoute>
+            <CrearPassword />
+          </AuthenticatedRoute>
+        }
       />
 
 
@@ -183,7 +233,7 @@ export default function App() {
 
 
 
-      {/* Nueva contraseña desde correo */}
+      {/* Crear nueva contraseña desde correo */}
       <Route
         path="/reset-password"
         element={<ResetPassword />}
@@ -191,7 +241,7 @@ export default function App() {
 
 
 
-      {/* App protegida */}
+      {/* Aplicación */}
       <Route
         path="/*"
         element={
