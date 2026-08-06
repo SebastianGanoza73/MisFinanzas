@@ -1,13 +1,13 @@
 import { useState, useMemo, useRef } from 'react'
 import { useMovimientos } from '../hooks/useMovimientos'
 import { useMode } from '../context/ModeContext'
-import { useTheme } from '../context/ThemeContext'
 import { formatMoney } from '../lib/formatters'
 import MovimientoModal from '../components/MovimientoModal'
 import MovimientoAcciones from '../components/MovimientoAcciones'
 import ConfirmModal from '../components/ConfirmModal'
 import CategoriasModal from '../components/CategoriasModal'
 import UserMenu from '../components/UserMenu'
+import ThemeToggle from '../components/ThemeToggle'
 
 
 function toISO(date) {
@@ -29,11 +29,6 @@ export default function ModoLite() {
 
 
   const { toggleMode } = useMode()
-
-  const {
-    theme,
-    toggleTheme
-  } = useTheme()
 
 
 
@@ -173,107 +168,75 @@ export default function ModoLite() {
 
 
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
+
+  <button
+
+    onClick={() => setShowCategorias(true)}
+
+    className="
+    flex items-center gap-1.5
+    text-sm font-medium
+    text-gray-700 dark:text-gray-200
+    bg-gray-100 hover:bg-gray-200
+    dark:bg-gray-800 dark:hover:bg-gray-700
+    px-2.5 sm:px-3
+    py-2
+    rounded-lg
+    transition-colors
+    "
+
+  >
+
+    🏷️
+
+    <span className="hidden sm:inline">
+      Categorías
+    </span>
+
+
+  </button>
 
 
 
-          <button
-
-            onClick={() => setShowCategorias(true)}
-
-            className="
-            flex items-center gap-1.5
-            text-sm font-medium
-            text-gray-700 dark:text-gray-200
-            bg-gray-100 hover:bg-gray-200
-            dark:bg-gray-800 dark:hover:bg-gray-700
-            px-2.5 sm:px-3
-            py-2
-            rounded-lg
-            transition-colors
-            "
-
-          >
-
-            🏷️
-
-            <span className="hidden sm:inline">
-              Categorías
-            </span>
-
-
-          </button>
+  <ThemeToggle />
 
 
 
+  <button
+
+    onClick={toggleMode}
+
+    className="
+    flex items-center gap-1
+    text-sm font-medium
+    text-gray-700 dark:text-gray-200
+    bg-gray-100 hover:bg-gray-200
+    dark:bg-gray-800 dark:hover:bg-gray-700
+    px-2.5 sm:px-3
+    py-2
+    rounded-lg
+    transition-colors
+    "
+
+  >
+
+    📊
+
+    <span className="hidden sm:inline">
+      Modo Estándar
+    </span>
 
 
-          <button
-
-            onClick={toggleTheme}
-
-            className="
-            flex items-center gap-1
-            text-sm font-medium
-            text-gray-700 dark:text-gray-200
-            bg-gray-100 hover:bg-gray-200
-            dark:bg-gray-800 dark:hover:bg-gray-700
-            px-2.5 sm:px-3
-            py-2
-            rounded-lg
-            transition-colors
-            "
-
-          >
-
-            {theme === 'dark' ? '☀️' : '🌙'}
-
-            <span className="hidden sm:inline">
-              Tema
-            </span>
-
-
-          </button>
-
+  </button>
 
 
 
+  <UserMenu />
 
 
-          <button
-
-            onClick={toggleMode}
-
-            className="
-            flex items-center gap-1
-            text-sm font-medium
-            text-gray-700 dark:text-gray-200
-            bg-gray-100 hover:bg-gray-200
-            dark:bg-gray-800 dark:hover:bg-gray-700
-            px-2.5 sm:px-3
-            py-2
-            rounded-lg
-            transition-colors
-            "
-
-          >
-
-            📊
-
-            <span className="hidden sm:inline">
-              Modo Estándar
-            </span>
-
-
-          </button>
-
-
-
-          <UserMenu />
-
-
-        </div>
-
+</div>
 
       </header>
 
