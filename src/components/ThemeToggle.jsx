@@ -6,9 +6,29 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"      aria-label="Cambiar tema"
+      aria-label="Cambiar tema"
+      className="
+        flex items-center gap-1.5
+        text-sm font-medium
+        text-gray-700 dark:text-gray-200
+        bg-gray-100 hover:bg-gray-200
+        dark:bg-gray-800 dark:hover:bg-gray-700
+        px-2.5 sm:px-3
+        py-2
+        rounded-lg
+        transition-colors
+        focus:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-brand-500
+      "
     >
-      {theme === 'dark' ? '☀️' : '🌙'}
+      <span>
+        {theme === 'dark' ? '☀️' : '🌙'}
+      </span>
+
+      <span className="hidden sm:inline">
+        Tema
+      </span>
     </button>
   )
 }
