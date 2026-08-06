@@ -3,30 +3,32 @@ import { createContext, useContext, useEffect, useState } from 'react'
 const ThemeContext = createContext()
 
 
+
+function getSystemTheme() {
+
+  return window.matchMedia(
+    '(prefers-color-scheme: dark)'
+  ).matches
+    ? 'dark'
+    : 'light'
+
+}
+
+
+
+
+
 export function ThemeProvider({ children }) {
-
-
-  const getSystemTheme = () => {
-
-    return window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    ).matches
-      ? 'dark'
-      : 'light'
-
-  }
-
-
 
 
   const [theme, setTheme] = useState(() => {
 
 
     const saved =
-      localStorage.getItem('theme')
+      localStorage.getItem('themePreference')
 
 
-    return saved || getSystemTheme()
+    return saved || 'system'
 
 
   })
@@ -35,7 +37,8 @@ export function ThemeProvider({ children }) {
 
 
 
-  useEffect(() => {
+
+  const applyTheme = (selectedTheme) => {
 
 
     const root =
@@ -43,7 +46,19 @@ export function ThemeProvider({ children }) {
 
 
 
-    if(theme === 'dark') {
+    let finalTheme = selectedTheme
+
+
+
+    if(selectedTheme === 'system') {
+
+      finalTheme = getSystemTheme()
+
+    }
+
+
+
+    if(finalTheme === 'dark') {
 
       root.classList.add('dark')
 
@@ -54,14 +69,30 @@ export function ThemeProvider({ children }) {
     }
 
 
+  }
+
+
+
+
+
+
+
+  useEffect(() => {
+
+
+    applyTheme(theme)
+
+
 
     localStorage.setItem(
-      'theme',
+      'themePreference',
       theme
     )
 
 
   }, [theme])
+
+
 
 
 
@@ -79,24 +110,13 @@ export function ThemeProvider({ children }) {
 
 
 
-    const listener = (event)=>{
+
+    const handleSystemChange = () => {
 
 
-      const saved =
-        localStorage.getItem('theme')
+      if(theme === 'system') {
 
-
-
-      // Solo cambia automático
-      // si el usuario nunca eligió manualmente
-
-      if(!saved){
-
-        setTheme(
-          event.matches
-            ? 'dark'
-            : 'light'
-        )
+        applyTheme('system')
 
       }
 
@@ -105,24 +125,31 @@ export function ThemeProvider({ children }) {
 
 
 
+
+
     media.addEventListener(
       'change',
-      listener
+      handleSystemChange
     )
 
 
 
-    return ()=>{
+
+
+    return () => {
+
 
       media.removeEventListener(
         'change',
-        listener
+        handleSystemChange
       )
+
 
     }
 
 
-  }, [])
+
+  }, [theme])
 
 
 
@@ -130,15 +157,12 @@ export function ThemeProvider({ children }) {
 
 
 
-  const toggleTheme = ()=>{
 
 
-    setTheme(
-      prev =>
-        prev === 'dark'
-          ? 'light'
-          : 'dark'
-    )
+  const changeTheme = (newTheme) => {
+
+
+    setTheme(newTheme)
 
 
   }
@@ -155,7 +179,7 @@ export function ThemeProvider({ children }) {
 
       value={{
         theme,
-        toggleTheme
+        changeTheme
       }}
 
     >
@@ -166,6 +190,7 @@ export function ThemeProvider({ children }) {
 
   )
 
+
 }
 
 
@@ -173,7 +198,9 @@ export function ThemeProvider({ children }) {
 
 
 
-export function useTheme(){
+
+
+export function useTheme() {
 
   return useContext(ThemeContext)
 
