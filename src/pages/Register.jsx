@@ -377,7 +377,7 @@ export default function Register() {
 
                   type="password"
 
-                  placeholder="Contraseña (mínimo 6 caracteres)"
+                  placeholder="Contraseña (mínimo 8 caracteres)"
 
                   value={password}
 
