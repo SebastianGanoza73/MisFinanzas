@@ -1,0 +1,37 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="lineGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d1fae5"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo redondeado -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Barras de fondo, sutiles -->
+  <rect x="120" y="300" width="44" height="120" rx="10" fill="#ffffff" opacity="0.18"/>
+  <rect x="196" y="250" width="44" height="170" rx="10" fill="#ffffff" opacity="0.22"/>
+  <rect x="272" y="200" width="44" height="220" rx="10" fill="#ffffff" opacity="0.28"/>
+
+  <!-- Linea de tendencia ascendente -->
+  <polyline points="110,360 205,290 275,320 360,190 400,150"
+            fill="none" stroke="url(#lineGrad)" stroke-width="20"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Punta de flecha -->
+  <polygon points="400,150 355,150 400,195" fill="#ffffff"/>
+
+  <!-- Punto de origen -->
+  <circle cx="110" cy="360" r="14" fill="#ffffff"/>
+
+  <!-- Moneda -->
+  <circle cx="392" cy="392" r="58" fill="#ffffff"/>
+  <circle cx="392" cy="392" r="58" fill="none" stroke="#d1fae5" stroke-width="6"/>
+  <text x="392" y="412" font-family="Georgia, serif" font-size="58" font-weight="bold"
+        fill="#059669" text-anchor="middle">S/</text>
+</svg>
