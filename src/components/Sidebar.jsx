@@ -12,35 +12,25 @@ const links = [
 export default function Sidebar({ open, onClose }) {
   return (
     <>
-      {/* Overlay oscuro detrás del drawer en móvil */}
+      {/* Fondo oscuro solo en mobile, cuando el panel está abierto */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40 sm:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
         className={`
-          fixed lg:static top-0 left-0 h-screen lg:h-auto lg:min-h-screen
-          w-64 shrink-0 border-r border-gray-200 dark:border-gray-800
-          bg-white dark:bg-gray-900 p-6 z-50
-          transition-transform duration-200
-          ${open ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
+          fixed sm:static top-0 left-0 h-screen sm:min-h-screen w-64 shrink-0
+          border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6
+          z-50 transition-transform duration-200
+          ${open ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'}
         `}
       >
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2">
-            <span className="text-brand-600 dark:text-brand-400 text-xl">📈</span>
-            <span className="font-bold text-lg text-gray-900 dark:text-gray-100">MisFinanzas</span>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Cerrar menú"
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-          >
-            ✕
-          </button>
+        <div className="flex items-center gap-2 mb-8">
+          <span className="text-brand-600 dark:text-brand-400 text-xl">📈</span>
+          <span className="font-bold text-lg text-gray-900 dark:text-gray-100">MisFinanzas</span>
         </div>
         <nav className="flex flex-col gap-1">
           {links.map((link) => (
