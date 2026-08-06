@@ -345,13 +345,19 @@ export function AuthProvider({ children }) {
 
 
 
-  const signUp = (email, password) =>
-    supabase.auth.signUp({
+  const signUp = (email, password, displayName) =>
+  supabase.auth.signUp({
 
-      email,
-      password
+    email,
+    password,
 
-    })
+    options: {
+      data: {
+        display_name: displayName
+      }
+    }
+
+  })
 
 
 
