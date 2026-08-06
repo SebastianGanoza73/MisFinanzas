@@ -7,6 +7,7 @@ import { formatMoney } from '../lib/formatters'
 import MovimientoModal from '../components/MovimientoModal'
 import MovimientoAcciones from '../components/MovimientoAcciones'
 import ConfirmModal from '../components/ConfirmModal'
+import CategoriasModal from '../components/CategoriasModal'
 
 function toISO(date) {
   return date.toISOString().slice(0, 10)
@@ -23,6 +24,7 @@ export default function ModoLite() {
   const [seleccionado, setSeleccionado] = useState(null)
   const [editando, setEditando] = useState(null)
   const [borrando, setBorrando] = useState(null)
+  const [showCategorias, setShowCategorias] = useState(false)
   const fechaInputRef = useRef(null)
 
   const { balance, movimientosDelDia } = useMemo(() => {
@@ -59,20 +61,29 @@ export default function ModoLite() {
       <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <span className="text-brand-600 dark:text-brand-400 text-xl">📈</span>
-          <span className="font-bold text-gray-900 dark:text-gray-100">MisFinanzas Express</span>
+          <span className="font-bold text-gray-900 dark:text-gray-100">MisFinanzas Lite</span>
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowCategorias(true)}
+            aria-label="Categorías"
+            className="p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors text-xl"
+          >
+            🏷️
+          </button>
+          <button
             onClick={toggleTheme}
+            aria-label="Cambiar tema"
             className="p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
           >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <button
             onClick={toggleMode}
-            className="text-sm font-medium px-3 py-2 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Cambiar a modo estándar"
+            className="p-2 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xl"
           >
-            Modo estándar
+            📊
           </button>
           <button
             onClick={signOut}
@@ -228,6 +239,8 @@ export default function ModoLite() {
           onCancel={() => setBorrando(null)}
         />
       )}
+
+      {showCategorias && <CategoriasModal onClose={() => setShowCategorias(false)} />}
     </div>
   )
 }
