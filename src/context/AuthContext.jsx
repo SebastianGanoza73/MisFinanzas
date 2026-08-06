@@ -1,11 +1,22 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext()
+const MINUTOS_INACTIVIDAD = 2
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const timeoutRef = useRef(null)
+
+  const signOut = () => supabase.auth.signOut()
+
+  const reiniciarTemporizador = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      signOut()
+    }, MINUTOS_INACTIVIDAD * 60 * 1000)
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -20,22 +31,32 @@ export function AuthProvider({ children }) {
     return () => listener.subscription.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    if (!user) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      return
+    }
+
+    // Inicia el temporizador apenas hay sesión activa
+    reiniciarTemporizador()
+
+    const eventos = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
+    eventos.forEach((evento) => window.addEventListener(evento, reiniciarTemporizador))
+
+    return () => {
+      eventos.forEach((evento) => window.removeEventListener(evento, reiniciarTemporizador))
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [user])
+
   const signUp = (email, password) =>
     supabase.auth.signUp({ email, password })
 
   const signIn = (email, password) =>
     supabase.auth.signInWithPassword({ email, password })
 
-  const signInWithGoogle = () =>
-    supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    })
-
-  const signOut = () => supabase.auth.signOut()
-
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, signInWithGoogle }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )
