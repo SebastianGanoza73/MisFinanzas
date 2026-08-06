@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useMovimientos } from '../hooks/useMovimientos'
 import { useMode } from '../context/ModeContext'
 import { useTheme } from '../context/ThemeContext'
@@ -23,6 +23,7 @@ export default function ModoLite() {
   const [seleccionado, setSeleccionado] = useState(null)
   const [editando, setEditando] = useState(null)
   const [borrando, setBorrando] = useState(null)
+  const fechaInputRef = useRef(null)
 
   const { balance, movimientosDelDia } = useMemo(() => {
     let balance = 0
@@ -54,8 +55,8 @@ export default function ModoLite() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
-      <header className="flex items-center justify-between px-4 py-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+      <header className="flex items-center justify-between px-4 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <span className="text-brand-600 dark:text-brand-400 text-xl">📈</span>
           <span className="font-bold text-gray-900 dark:text-gray-100">MisFinanzas Lite</span>
@@ -84,16 +85,23 @@ export default function ModoLite() {
 
       <main className="flex-1 flex flex-col items-center px-4 py-6 gap-5">
         <div className="w-full max-w-sm flex flex-col gap-5">
-          {/* Fecha — tocar abre el calendario, sin flechas */}
-          <div className="relative">
-            <div className="w-full border-4 border-brand-500 rounded-2xl py-6 px-4 text-center font-extrabold text-2xl text-gray-900 dark:text-gray-100 capitalize leading-tight">
-              {fechaFormateada}
+          {/* Fecha — tocar abre el calendario nativo */}
+          <div
+            className="relative cursor-pointer"
+            onClick={() => fechaInputRef.current?.showPicker?.()}
+          >
+            <div className="w-full bg-white dark:bg-gray-900 border-4 border-brand-500 rounded-2xl py-6 px-4 flex items-center justify-center gap-3 shadow-md shadow-brand-500/10">
+              <span className="text-2xl">📅</span>
+              <span className="font-extrabold text-2xl text-gray-900 dark:text-gray-100 capitalize leading-tight">
+                {fechaFormateada}
+              </span>
             </div>
             <input
+              ref={fechaInputRef}
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className="absolute inset-0 opacity-0 cursor-pointer"
+              className="absolute inset-0 opacity-0 pointer-events-none"
               aria-label="Elegir fecha"
             />
           </div>
@@ -107,13 +115,11 @@ export default function ModoLite() {
             </button>
           )}
 
-          {/* Saldo */}
-          <div className="w-full border-4 border-brand-500 rounded-2xl py-6 px-6 flex flex-col items-center gap-1">
-            <span className="font-bold text-xl text-gray-900 dark:text-gray-100">Saldo</span>
+          {/* Saldo — degradado como el resto de la app */}
+          <div className="w-full bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl py-7 px-6 flex flex-col items-center gap-1 shadow-lg shadow-brand-900/20">
+            <span className="font-bold text-lg text-brand-100 uppercase tracking-wide">Saldo</span>
             <span
-              className={`text-4xl font-extrabold ${
-                balance < 0 ? 'text-red-600' : 'text-brand-700 dark:text-brand-400'
-              }`}
+              className={`text-4xl font-extrabold ${balance < 0 ? 'text-red-200' : 'text-white'}`}
             >
               {formatMoney(balance)}
             </span>
@@ -122,39 +128,45 @@ export default function ModoLite() {
           {/* Botones */}
           <button
             onClick={() => setModalTipo('ingreso')}
-            className="w-full border-4 border-brand-500 rounded-2xl py-6 font-extrabold text-2xl text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+            className="w-full bg-white dark:bg-gray-900 border-4 border-brand-500 rounded-2xl py-6 flex items-center justify-center gap-3 font-extrabold text-2xl text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors shadow-sm"
           >
-            Ingreso +
+            <span className="w-10 h-10 flex items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-400 text-2xl">+</span>
+            Ingreso
           </button>
 
           <button
             onClick={() => setModalTipo('egreso')}
-            className="w-full border-4 border-red-500 rounded-2xl py-6 font-extrabold text-2xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="w-full bg-white dark:bg-gray-900 border-4 border-red-500 rounded-2xl py-6 flex items-center justify-center gap-3 font-extrabold text-2xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shadow-sm"
           >
-            Gastos −
+            <span className="w-10 h-10 flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 text-2xl">−</span>
+            Gasto
           </button>
 
           {/* Movimientos del día */}
           <div>
             <p className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
-              Movimientos de este día:
+              Movimientos de este día
             </p>
             {loading ? (
               <p className="text-lg text-gray-500 dark:text-gray-400">Cargando...</p>
             ) : movimientosDelDia.length === 0 ? (
-              <p className="text-lg text-gray-500 dark:text-gray-400 text-center py-6 font-medium">
-                Sin movimientos este día
-              </p>
+              <div className="text-center py-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <p className="text-lg text-gray-500 dark:text-gray-400 font-medium">
+                  Sin movimientos este día
+                </p>
+              </div>
             ) : (
               <div className="flex flex-col gap-3">
                 {movimientosDelDia.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => setSeleccionado(m)}
-                    className="flex items-center justify-between border-4 border-gray-300 dark:border-gray-700 rounded-2xl px-5 py-4 hover:border-brand-400 dark:hover:border-brand-600 transition-colors text-left"
+                    className="flex items-center justify-between bg-white dark:bg-gray-900 border-4 border-gray-200 dark:border-gray-700 rounded-2xl px-5 py-4 hover:border-brand-400 dark:hover:border-brand-600 transition-colors text-left shadow-sm"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{m.categorias?.icono ?? '💰'}</span>
+                      <span className="w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-2xl">
+                        {m.categorias?.icono ?? '💰'}
+                      </span>
                       <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                         {m.categorias?.nombre ?? 'Sin categoría'}
                       </span>
