@@ -2,12 +2,12 @@ import { useState, useMemo, useRef } from 'react'
 import { useMovimientos } from '../hooks/useMovimientos'
 import { useMode } from '../context/ModeContext'
 import { useTheme } from '../context/ThemeContext'
-import { useAuth } from '../context/AuthContext'
 import { formatMoney } from '../lib/formatters'
 import MovimientoModal from '../components/MovimientoModal'
 import MovimientoAcciones from '../components/MovimientoAcciones'
 import ConfirmModal from '../components/ConfirmModal'
 import CategoriasModal from '../components/CategoriasModal'
+import UserMenu from '../components/UserMenu'
 
 function toISO(date) {
   return date.toISOString().slice(0, 10)
@@ -17,7 +17,6 @@ export default function ModoLite() {
   const { movimientos, loading, addMovimiento, updateMovimiento, deleteMovimiento } = useMovimientos()
   const { toggleMode } = useMode()
   const { theme, toggleTheme } = useTheme()
-  const { signOut } = useAuth()
 
   const [fecha, setFecha] = useState(() => toISO(new Date()))
   const [modalTipo, setModalTipo] = useState(null)
@@ -85,12 +84,7 @@ export default function ModoLite() {
           >
             📊
           </button>
-          <button
-            onClick={signOut}
-            className="text-sm font-medium px-3 py-2.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 transition-colors"
-          >
-            Salir
-          </button>
+          <UserMenu />
         </div>
       </header>
 
