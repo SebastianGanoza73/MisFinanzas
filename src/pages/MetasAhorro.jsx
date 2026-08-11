@@ -10,6 +10,7 @@ export default function MetasAhorro() {
   const [creando, setCreando] = useState(false)
   const [editando, setEditando] = useState(null)
   const [borrando, setBorrando] = useState(null)
+  const [verTodos, setVerTodos] = useState(false)
 
   const confirmarBorrado = async () => {
     await deleteMeta(borrando.id)
@@ -32,11 +33,23 @@ export default function MetasAhorro() {
         </button>
       </div>
 
-      {/* El slider que antes vivía en Inicio ahora está solo aquí, en su
-          propia página, visible en mobile. */}
+      {/* En mobile solo vive el slider + botón "Ver todos": más limpio que
+          apilar una tarjeta tras otra. La lista completa (con editar/eliminar
+          en cada tarjeta) se muestra solo si el usuario la pide. */}
       {!loading && metas.length > 0 && (
         <div className="sm:hidden">
-          <MetaCarousel metas={metas} />
+          <MetaCarousel
+            metas={metas}
+            onEditar={(m) => setEditando(m)}
+            onEliminar={(m) => setBorrando(m)}
+          />
+          <button
+            onClick={() => setVerTodos((v) => !v)}
+            className="w-full mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-[0.99] transition-all"
+          >
+            {verTodos ? 'Ocultar lista' : `Ver todos (${metas.length})`}
+            <span className={`transition-transform ${verTodos ? 'rotate-180' : ''}`}>⌄</span>
+          </button>
         </div>
       )}
 
@@ -72,9 +85,10 @@ export default function MetasAhorro() {
           </div>
         )}
 
-        {/* En mobile, la lista completa debajo del slider (editar/eliminar). */}
-        {!loading && metas.length > 0 && (
-          <div className="sm:hidden flex flex-col gap-3 mt-4">
+        {/* En mobile, la lista completa (con editar/eliminar) solo aparece
+            si el usuario toca "Ver todos". */}
+        {!loading && metas.length > 0 && verTodos && (
+          <div className="sm:hidden flex flex-col gap-3 mt-4 animate-slide-up">
             {metas.map((m) => (
               <MetaCard
                 key={m.id}
