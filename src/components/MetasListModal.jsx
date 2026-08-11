@@ -38,3 +38,4 @@ export default function MetasListModal({ metas, onClose, onEditar, onEliminar })
     </div>
   )
 }
+
