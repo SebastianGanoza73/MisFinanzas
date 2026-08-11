@@ -20,6 +20,35 @@ let deferredPrompt = null
 let installed = false
 const listeners = new Set()
 
+// Marca en localStorage el instante exacto en que el usuario aceptó
+// instalar. Existe porque vite-plugin-pwa (registerType: 'autoUpdate')
+// puede recargar la página justo en ese momento si hay un service
+// worker nuevo tomando control, lo que borra el estado de React antes
+// de que el toast de éxito llegue a mostrarse. Guardando la marca acá,
+// sobrevive a esa recarga.
+const JUST_INSTALLED_KEY = 'misfinanzas-pwa-just-installed'
+const JUST_INSTALLED_MARGEN_MS = 15000
+
+export function marcarJustInstalled() {
+  try {
+    localStorage.setItem(JUST_INSTALLED_KEY, String(Date.now()))
+  } catch {
+    // Modo privado / localStorage bloqueado: no rompe la app.
+  }
+}
+
+// Lee la marca UNA VEZ y la borra (para no volver a mostrar el toast
+// en una recarga posterior que no tenga que ver con la instalación).
+export function consumirJustInstalled() {
+  try {
+    const marca = localStorage.getItem(JUST_INSTALLED_KEY)
+    localStorage.removeItem(JUST_INSTALLED_KEY)
+    return marca ? Date.now() - Number(marca) < JUST_INSTALLED_MARGEN_MS : false
+  } catch {
+    return false
+  }
+}
+
 function notificar() {
   listeners.forEach((callback) => callback())
 }
