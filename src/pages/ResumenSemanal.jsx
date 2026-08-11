@@ -90,9 +90,9 @@ export default function ResumenSemanal() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-8">
-        <p className="text-xs uppercase tracking-wide text-brand-100 mb-2">Resumen semanal</p>
-        <h1 className="text-2xl font-bold mb-1">Tu semana en números</h1>
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-6 sm:p-8 shadow-lg shadow-brand-900/15">
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 mb-2">Resumen semanal</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight">Tu semana en números</h1>
         <p className="text-sm text-brand-100">
           Compará tu semana actual con la anterior y descubrí recomendaciones automáticas.
         </p>
@@ -102,9 +102,9 @@ export default function ResumenSemanal() {
         <p className="text-gray-500 dark:text-gray-400 text-sm">Cargando...</p>
       ) : (
         <>
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-            <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1">Esta semana</p>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <div className="bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Esta semana</p>
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
               Resumen de gasto y ahorro
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -124,7 +124,7 @@ export default function ResumenSemanal() {
 
             {stats.topCategorias.length > 0 && (
               <div className="mt-6">
-                <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
                   Categorías con más gasto
                 </p>
                 <div className="flex flex-col gap-2">
@@ -145,38 +145,49 @@ export default function ResumenSemanal() {
             )}
           </div>
 
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-            <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1">Comparativa</p>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <div className="bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Comparativa</p>
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
               Esta semana vs. la anterior
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Gasto: gastar MENOS que la semana pasada es bueno (verde,
+                  flecha abajo). Gastar MÁS es malo (rojo, flecha arriba).
+                  Antes se mostraba el número crudo con signo ("-100.00" en
+                  verde), que confundía porque un signo negativo no
+                  comunica si es bueno o malo según la métrica; ahora el
+                  texto lo dice explícitamente y la flecha refuerza. */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1">Gasto</p>
-                <p
-                  className={`text-lg font-bold ${
-                    diffGasto > 0 ? 'text-red-500' : 'text-brand-600 dark:text-brand-400'
-                  }`}
-                >
-                  {diffGasto >= 0 ? '+' : ''}
-                  {formatMoney(diffGasto)}
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  Semana pasada: {formatMoney(stats.gastoAnterior)}
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Gasto</p>
+                {diffGasto === 0 ? (
+                  <p className="text-lg font-bold text-gray-500 dark:text-gray-400">Igual que la semana pasada</p>
+                ) : (
+                  <p className={`flex items-center gap-1.5 text-lg font-bold ${diffGasto > 0 ? 'text-red-500' : 'text-brand-600 dark:text-brand-400'}`}>
+                    <span>{diffGasto > 0 ? '▲' : '▼'}</span>
+                    {formatMoney(Math.abs(diffGasto))}
+                    <span className="text-xs font-semibold">{diffGasto > 0 ? 'más' : 'menos'}</span>
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Esta semana {formatMoney(stats.gastoActual)} · semana pasada {formatMoney(stats.gastoAnterior)}
                 </p>
               </div>
+
+              {/* Ahorro: ahorrar MÁS que la semana pasada es bueno (verde,
+                  flecha arriba). Ahorrar MENOS es malo (rojo, flecha abajo). */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1">Ahorro</p>
-                <p
-                  className={`text-lg font-bold ${
-                    diffAhorro >= 0 ? 'text-brand-600 dark:text-brand-400' : 'text-red-500'
-                  }`}
-                >
-                  {diffAhorro >= 0 ? '+' : ''}
-                  {formatMoney(diffAhorro)}
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  Semana pasada: {formatMoney(stats.ahorroAnterior)}
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Ahorro</p>
+                {diffAhorro === 0 ? (
+                  <p className="text-lg font-bold text-gray-500 dark:text-gray-400">Igual que la semana pasada</p>
+                ) : (
+                  <p className={`flex items-center gap-1.5 text-lg font-bold ${diffAhorro >= 0 ? 'text-brand-600 dark:text-brand-400' : 'text-red-500'}`}>
+                    <span>{diffAhorro >= 0 ? '▲' : '▼'}</span>
+                    {formatMoney(Math.abs(diffAhorro))}
+                    <span className="text-xs font-semibold">{diffAhorro >= 0 ? 'más' : 'menos'}</span>
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Esta semana {formatMoney(stats.ahorroActual)} · semana pasada {formatMoney(stats.ahorroAnterior)}
                 </p>
               </div>
             </div>
@@ -184,7 +195,7 @@ export default function ResumenSemanal() {
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-6">
             <p className="text-xs uppercase text-amber-600 dark:text-amber-400 mb-1">Recomendaciones</p>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-3">
               Cómo mejorar tu ahorro
             </h2>
             <p className="text-sm text-gray-700 dark:text-gray-300">{recomendacion}</p>
