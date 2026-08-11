@@ -7,7 +7,7 @@ const AUTOPLAY_MS = 5000
 // Carrusel tipo "promos de Yape": avanza solo cada 5s, pero en cuanto el
 // usuario desliza o toca un punto, se detiene esos 5s antes de retomar el
 // autoplay, para no pelearse con la interacción manual.
-export default function MetaCarousel({ metas }) {
+export default function MetaCarousel({ metas, onEditar, onEliminar }) {
   const [index, setIndex] = useState(0)
   const autoplayRef = useRef(null)
   const resumeRef = useRef(null)
@@ -89,7 +89,12 @@ export default function MetaCarousel({ metas }) {
         >
           {metas.map((m) => (
             <div key={m.id} className="carousel-slide px-1">
-              <MetaCard meta={m} compact />
+              <MetaCard
+                meta={m}
+                compact
+                onEditar={onEditar ? () => onEditar(m) : undefined}
+                onEliminar={onEliminar ? () => onEliminar(m) : undefined}
+              />
             </div>
           ))}
         </div>
