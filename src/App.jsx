@@ -5,6 +5,7 @@ import { useMode } from './context/ModeContext'
 
 import MainLayout from './layouts/MainLayout'
 import SplashScreen from './components/SplashScreen'
+import InstallPwaButton from './components/InstallPwaButton'
 
 import Auth from './pages/Auth'
 import Register from './pages/Register'
@@ -227,6 +228,8 @@ export default function App() {
 
   return (
 
+    <>
+
     <Routes>
 
 
@@ -290,6 +293,14 @@ export default function App() {
 
 
     </Routes>
+
+    {/* Botón "Instalar aplicación": global, para que esté disponible
+        tanto en las pantallas de login/registro como dentro de la app.
+        Se oculta solo (ver InstallPwaButton) en desktop, si el
+        navegador no ofrece instalación, o si ya está instalada. */}
+    <InstallPwaButton />
+
+    </>
 
   )
 
