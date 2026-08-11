@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import {
+  getDeferredPrompt,
+  getIsInstalled,
+  markInstalled,
+  subscribe,
+} from '../lib/pwaInstallService'
 
 // Se guarda en localStorage para que, aunque el usuario reabra la app
 // desde el navegador (no desde el ícono instalado) y por lo tanto el
@@ -23,13 +29,6 @@ function guardarFlagInstalado() {
   }
 }
 
-function esDisplayStandalone() {
-  if (typeof window === 'undefined') return false
-  const mql = window.matchMedia?.('(display-mode: standalone)')
-  const iosStandalone = window.navigator?.standalone === true // Safari iOS
-  return Boolean(mql?.matches) || iosStandalone
-}
-
 function esDispositivoMovil() {
   if (typeof navigator === 'undefined') return false
 
@@ -50,8 +49,10 @@ function esDispositivoMovil() {
 /**
  * Encapsula todo el ciclo de vida de la instalación como PWA:
  * - Detecta si el dispositivo es móvil.
- * - Captura el evento nativo `beforeinstallprompt` (Chrome/Android) y
- *   evita que el navegador lo muestre por su cuenta.
+ * - Lee el evento nativo `beforeinstallprompt` capturado por
+ *   lib/pwaInstallService.js (capturado a nivel de módulo, antes de
+ *   que React monte nada, para no perderlo por timing con el splash
+ *   screen u otros retrasos de montaje).
  * - Expone `promptInstall` para abrir ese diálogo nativo bajo demanda.
  * - Detecta instalación ya sea por el evento `appinstalled` o porque la
  *   app ya se está ejecutando en modo standalone (ícono instalado).
@@ -59,63 +60,61 @@ function esDispositivoMovil() {
  *   botón, incluso si se reabre la app desde el navegador normal.
  */
 export function usePwaInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [isMobile] = useState(esDispositivoMovil)
+
+  const [deferredPrompt, setDeferredPrompt] = useState(getDeferredPrompt)
   const [isInstalled, setIsInstalled] = useState(() => {
     // Se resuelve una sola vez, en el primer render: si ya se está
-    // ejecutando en modo standalone (ícono instalado) o si una sesión
-    // anterior ya marcó la app como instalada, arrancamos directamente
-    // en "instalado" sin parpadeos ni renders en cascada.
-    const yaInstalada = esDisplayStandalone() || leerFlagInstalado()
+    // ejecutando en modo standalone (ícono instalado), si el servicio
+    // ya detectó "appinstalled", o si una sesión anterior ya marcó la
+    // app como instalada, arrancamos directamente en "instalado" sin
+    // parpadeos ni renders en cascada.
+    const yaInstalada = getIsInstalled() || leerFlagInstalado()
     if (yaInstalada) guardarFlagInstalado()
     return yaInstalada
   })
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event) => {
-      // Evita el mini-infobar automático del navegador: el control lo
-      // tiene el botón propio de MisFinanzas.
-      event.preventDefault()
-      setDeferredPrompt(event)
+    // Nos suscribimos a los cambios del servicio compartido. También
+    // sincronizamos el estado actual al montar, por si el evento
+    // beforeinstallprompt (o appinstalled) ya había llegado antes de
+    // que este componente existiera.
+    const sincronizar = () => {
+      setDeferredPrompt(getDeferredPrompt())
+      if (getIsInstalled()) {
+        setIsInstalled(true)
+        guardarFlagInstalado()
+      }
     }
 
-    const handleAppInstalled = () => {
-      setIsInstalled(true)
-      setDeferredPrompt(null)
-      guardarFlagInstalado()
-    }
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-    }
+    sincronizar()
+    return subscribe(sincronizar)
   }, [])
 
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) return
+    const prompt = getDeferredPrompt()
+    if (!prompt) return
 
     try {
-      await deferredPrompt.prompt()
-      const { outcome } = await deferredPrompt.userChoice
+      await prompt.prompt()
+      const { outcome } = await prompt.userChoice
 
       if (outcome === 'accepted') {
         // No hace falta esperar "appinstalled": ya sabemos el resultado.
         setIsInstalled(true)
         guardarFlagInstalado()
+        markInstalled()
       }
       // Si el usuario cancela ("dismissed"), no se oculta el botón: se
       // deja disponible para reintentar. El propio evento del navegador
       // ya no se puede reutilizar (limitación del API beforeinstallprompt),
-      // pero si el navegador dispara uno nuevo más adelante, este hook
+      // pero si el navegador dispara uno nuevo más adelante, el servicio
       // lo captura solo y el botón vuelve a funcionar sin recargar nada.
     } catch {
       // Evento ya usado o inválido: no rompe la UI, simplemente el botón
       // queda a la espera de un nuevo `beforeinstallprompt`.
     }
-  }, [deferredPrompt])
+  }, [])
 
   const canInstall = isMobile && !isInstalled && deferredPrompt !== null
 
