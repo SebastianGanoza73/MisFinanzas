@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext()
 
-const MINUTOS_INACTIVIDAD = 2
+const MINUTOS_INACTIVIDAD = 5
 const SEGUNDOS_AVISO_PREVIO = 20
 
 
