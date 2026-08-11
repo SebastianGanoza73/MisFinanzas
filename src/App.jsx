@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { useMode } from './context/ModeContext'
@@ -33,7 +34,16 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
 
-    return <SplashScreen />
+    // Este caso ya casi nunca ocurre (el arranque de la app espera a que
+    // la sesión esté lista antes de mostrar rutas), pero se deja un
+    // indicador liviano como respaldo. La pantalla grande de bienvenida
+    // ("¡Bienvenido a MisFinanzas!") solo debe verse una vez, al abrir la
+    // app por primera vez — nunca después de iniciar sesión.
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <span className="w-8 h-8 rounded-full border-[3px] border-brand-200 dark:border-brand-900 border-t-brand-600 dark:border-t-brand-400 animate-spin" />
+      </div>
+    )
 
   }
 
@@ -84,7 +94,12 @@ function AuthenticatedRoute({ children }) {
 
   if (loading) {
 
-    return <SplashScreen />
+    // Mismo respaldo liviano que en ProtectedRoute — ver comentario arriba.
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <span className="w-8 h-8 rounded-full border-[3px] border-brand-200 dark:border-brand-900 border-t-brand-600 dark:border-t-brand-400 animate-spin" />
+      </div>
+    )
 
   }
 
@@ -183,7 +198,32 @@ function AppShell() {
 
 
 
+// Duración mínima (ms) que se mantiene visible la pantalla de bienvenida al
+// abrir la app, para que el texto se alcance a leer aunque la sesión cargue
+// rápido en una red buena.
+const SPLASH_MIN_MS = 2200
+
 export default function App() {
+
+  const { loading: authLoading } = useAuth()
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMinTimeElapsed(true), SPLASH_MIN_MS)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // El splash se queda visible hasta que se cumplan AMBAS condiciones: el
+  // tiempo mínimo de lectura y la verificación de sesión. Una vez que las
+  // dos se cumplen, ninguna vuelve a "true" durante esta sesión del
+  // navegador — por eso "¡Bienvenido a MisFinanzas!" solo aparece una vez
+  // al abrir la app, y nunca se repite después de iniciar sesión o
+  // registrarse.
+  if (!minTimeElapsed || authLoading) {
+
+    return <SplashScreen />
+
+  }
 
   return (
 
