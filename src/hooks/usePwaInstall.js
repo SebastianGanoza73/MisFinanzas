@@ -63,6 +63,12 @@ export function usePwaInstall() {
   const [isMobile] = useState(esDispositivoMovil)
 
   const [deferredPrompt, setDeferredPrompt] = useState(getDeferredPrompt)
+  // Distinto de isInstalled: isInstalled también es true en sesiones
+  // futuras (por el flag en localStorage), mientras que justInstalled
+  // solo se enciende una vez, en el momento exacto en que el usuario
+  // acepta el diálogo nativo — es la señal que usa el toast de éxito
+  // para saber cuándo mostrarse.
+  const [justInstalled, setJustInstalled] = useState(false)
   const [isInstalled, setIsInstalled] = useState(() => {
     // Se resuelve una sola vez, en el primer render: si ya se está
     // ejecutando en modo standalone (ícono instalado), si el servicio
@@ -102,6 +108,7 @@ export function usePwaInstall() {
       if (outcome === 'accepted') {
         // No hace falta esperar "appinstalled": ya sabemos el resultado.
         setIsInstalled(true)
+        setJustInstalled(true)
         guardarFlagInstalado()
         markInstalled()
       }
@@ -118,5 +125,9 @@ export function usePwaInstall() {
 
   const canInstall = isMobile && !isInstalled && deferredPrompt !== null
 
-  return { canInstall, promptInstall, isInstalled }
+  // El toast lo llama cuando termina de mostrarse, para no dispararlo
+  // de nuevo en renders posteriores dentro de la misma sesión.
+  const dismissJustInstalled = useCallback(() => setJustInstalled(false), [])
+
+  return { canInstall, promptInstall, isInstalled, justInstalled, dismissJustInstalled }
 }
