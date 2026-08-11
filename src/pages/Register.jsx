@@ -1,67 +1,33 @@
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
-export default function Register() {
+export default function ResetPassword() {
 
-  const { signUp } = useAuth()
-  const navigate = useNavigate()
-
-
-  const [nombre, setNombre] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-
-  const [correoEnviado, setCorreoEnviado] = useState('')
+  const [confirmar, setConfirmar] = useState('')
 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [emailEnviado, setEmailEnviado] = useState(false)
+
+  const navigate = useNavigate()
 
 
 
-  const crearCuenta = async (e) => {
+  const cambiarPassword = async (e) => {
 
     e.preventDefault()
 
     setError('')
-    setEmailEnviado(false)
-    setLoading(true)
 
 
 
-    const { error } = await signUp(
-      email,
-      password,
-      nombre
-    )
+    if(password.length < 6){
 
-
-
-    setLoading(false)
-
-
-
-    if (error) {
-
-      if (
-        error.message.includes('already registered') ||
-        error.message.includes('already exists')
-      ) {
-
-        setError(
-          'Este correo ya está registrado.'
-        )
-
-      } else {
-
-        setError(
-          'No se pudo crear la cuenta. Inténtalo nuevamente.'
-        )
-
-      }
-
+      setError(
+        'La contraseña debe tener mínimo 6 caracteres.'
+      )
 
       return
 
@@ -69,21 +35,46 @@ export default function Register() {
 
 
 
-    // Guardamos el correo antes de limpiar
-    setCorreoEnviado(email)
+    if(password !== confirmar){
+
+      setError(
+        'Las contraseñas no coinciden.'
+      )
+
+      return
+
+    }
 
 
 
-    // Limpiamos formulario
-    setNombre('')
-    setEmail('')
-    setPassword('')
+    setLoading(true)
 
 
 
-    // Mostramos pantalla de confirmación
-    setEmailEnviado(true)
+    const {
+      error
+    } = await supabase.auth.updateUser({
 
+      password
+
+    })
+
+
+
+    setLoading(false)
+
+
+
+    if(error){
+
+      setError(error.message)
+      return
+
+    }
+
+
+
+    navigate('/')
 
   }
 
@@ -93,454 +84,113 @@ export default function Register() {
 
   return (
 
-    <div className="
-      min-h-screen
-      flex
-      items-center
-      justify-center
-      bg-gray-50
-      dark:bg-gray-950
-      px-4
-      py-10
-      animate-fade-in
-    ">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-10 animate-fade-in">
 
 
-      <div className="
-        w-full
-        max-w-sm
-        bg-white
-        dark:bg-gray-900
-        rounded-3xl
-        shadow-xl
-        shadow-gray-200/60
-        dark:shadow-none
-        border
-        border-gray-100
-        dark:border-gray-800
-        p-8
-        animate-scale-in
-      ">
+      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-3xl shadow-xl shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 p-8 animate-scale-in">
 
 
 
-        {
-          emailEnviado ? (
+        <h1 className="text-xl font-bold text-center mb-3 text-gray-900 dark:text-gray-100">
 
+          Nueva contraseña
 
-            <div className="text-center">
-
-
-              <div className="
-                w-20
-                h-20
-                mx-auto
-                mb-6
-                rounded-full
-                bg-brand-100
-                dark:bg-brand-900/30
-                flex
-                items-center
-                justify-center
-                text-4xl
-              ">
-
-                📧
-
-              </div>
-
-
-
-              <h2 className="
-                text-2xl
-                font-bold
-                text-gray-900
-                dark:text-gray-100
-                mb-3
-              ">
-
-                Revisa tu correo
-
-              </h2>
+        </h1>
 
 
 
 
-              <p className="
-                text-gray-500
-                dark:text-gray-400
-              ">
+        <p className="text-sm text-center text-gray-500 mb-6">
 
-                Hemos enviado un enlace de confirmación a:
+          Escribe tu nueva contraseña.
 
-              </p>
+        </p>
 
 
 
 
-              <p className="
-                mt-2
-                font-semibold
-                text-brand-600
-                dark:text-brand-400
-                break-all
-              ">
 
-                {correoEnviado}
+        <form
+          onSubmit={cambiarPassword}
+          className="flex flex-col gap-4"
+        >
+
+
+
+          <input
+
+            type="password"
+
+            placeholder="Nueva contraseña"
+
+            value={password}
+
+            onChange={(e)=>setPassword(e.target.value)}
+
+            required
+
+            className="px-4 py-3 rounded-xl text-base font-medium border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+
+          />
+
+
+
+
+
+          <input
+
+            type="password"
+
+            placeholder="Confirmar contraseña"
+
+            value={confirmar}
+
+            onChange={(e)=>setConfirmar(e.target.value)}
+
+            required
+
+            className="px-4 py-3 rounded-xl text-base font-medium border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+
+          />
+
+
+
+
+
+          {
+            error && (
+
+              <p className="text-red-500 text-sm">
+
+                {error}
 
               </p>
 
+            )
+          }
 
 
 
 
-              <p className="
-                mt-5
-                text-sm
-                leading-6
-                text-gray-500
-                dark:text-gray-400
-              ">
+          <button
 
-                Revisa tu bandeja de entrada y haz clic en el enlace de confirmación para activar tu cuenta.
+            disabled={loading}
 
-              </p>
+            className="bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] shadow-sm"
 
+          >
 
+            {
+              loading
+              ? 'Guardando...'
+              : 'Cambiar contraseña'
+            }
 
+          </button>
 
-              <p className="
-                mt-2
-                text-sm
-                text-gray-500
-                dark:text-gray-400
-              ">
 
-                Después podrás iniciar sesión normalmente.
 
-              </p>
-
-
-
-
-
-              <button
-
-                onClick={() => navigate('/login')}
-
-                className="
-                  w-full
-                  mt-8
-                  bg-brand-600
-                  hover:bg-brand-700
-                  text-white
-                  font-semibold
-                  py-3
-                  rounded-xl
-                  transition-all
-                  active:scale-[0.98]
-                  shadow-sm
-                "
-
-              >
-
-                Ir al inicio de sesión
-
-
-              </button>
-
-
-
-            </div>
-
-
-
-          ) : (
-
-
-            <>
-
-
-              <h1 className="
-                text-2xl
-                font-bold
-                text-center
-                text-gray-900
-                dark:text-gray-100
-                mb-2
-              ">
-
-                Crear cuenta
-
-              </h1>
-
-
-
-
-              <p className="
-                text-sm
-                text-center
-                text-gray-500
-                dark:text-gray-400
-                mb-6
-              ">
-
-                Crea tu cuenta para comenzar a administrar tus finanzas.
-
-              </p>
-
-
-
-
-
-              <form
-
-                onSubmit={crearCuenta}
-
-                className="
-                  flex
-                  flex-col
-                  gap-4
-                "
-
-              >
-
-
-
-
-
-                <input
-
-                  type="text"
-
-                  placeholder="Nombre"
-
-                  value={nombre}
-
-                  onChange={(e)=>setNombre(e.target.value)}
-
-                  required
-
-                  className="
-                    w-full
-                    px-4
-                    py-3
-                    rounded-xl
-                    text-base
-                    font-medium
-                    border
-                    border-gray-200
-                    dark:border-gray-700
-                    bg-gray-50
-                    dark:bg-gray-800
-                    text-gray-900
-                    dark:text-gray-100
-                    placeholder-gray-400
-                    dark:placeholder-gray-500
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-brand-500
-                    focus:border-transparent
-                    transition-shadow
-                  "
-
-                />
-
-
-
-
-
-                <input
-
-                  type="email"
-
-                  placeholder="Correo electrónico"
-
-                  value={email}
-
-                  onChange={(e)=>setEmail(e.target.value)}
-
-                  required
-
-                  className="
-                    w-full
-                    px-4
-                    py-3
-                    rounded-xl
-                    text-base
-                    font-medium
-                    border
-                    border-gray-200
-                    dark:border-gray-700
-                    bg-gray-50
-                    dark:bg-gray-800
-                    text-gray-900
-                    dark:text-gray-100
-                    placeholder-gray-400
-                    dark:placeholder-gray-500
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-brand-500
-                    focus:border-transparent
-                    transition-shadow
-                  "
-
-                />
-
-
-
-
-
-
-                <input
-
-                  type="password"
-
-                  placeholder="Contraseña (mínimo 8 caracteres)"
-
-                  value={password}
-
-                  onChange={(e)=>setPassword(e.target.value)}
-
-                  minLength={6}
-
-                  required
-
-                  className="
-                    w-full
-                    px-4
-                    py-3
-                    rounded-xl
-                    text-base
-                    font-medium
-                    border
-                    border-gray-200
-                    dark:border-gray-700
-                    bg-gray-50
-                    dark:bg-gray-800
-                    text-gray-900
-                    dark:text-gray-100
-                    placeholder-gray-400
-                    dark:placeholder-gray-500
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-brand-500
-                    focus:border-transparent
-                    transition-shadow
-                  "
-
-                />
-
-
-
-
-
-
-
-                {
-                  error && (
-
-                    <div className="
-                      rounded-lg
-                      bg-red-50
-                      dark:bg-red-900/20
-                      border
-                      border-red-200
-                      dark:border-red-800
-                      p-3
-                    ">
-
-                      <p className="
-                        text-sm
-                        text-red-600
-                        dark:text-red-400
-                      ">
-
-                        {error}
-
-                      </p>
-
-
-                    </div>
-
-                  )
-                }
-
-
-
-
-
-
-
-                <button
-
-                  type="submit"
-
-                  disabled={loading}
-
-                  className="
-                    w-full
-                    bg-brand-600
-                    hover:bg-brand-700
-                    disabled:opacity-50
-                    disabled:cursor-not-allowed
-                    active:scale-[0.98]
-                    text-white
-                    font-semibold
-                    py-3
-                    rounded-xl
-                    transition-all
-                    shadow-sm
-                  "
-
-                >
-
-                  {
-                    loading
-                    ? 'Creando cuenta...'
-                    : 'Crear cuenta'
-                  }
-
-
-                </button>
-
-
-
-              </form>
-
-
-
-
-
-
-              <button
-
-                onClick={() => navigate('/login')}
-
-                className="
-                  w-full
-                  mt-5
-                  text-sm
-                  text-brand-600
-                  dark:text-brand-400
-                  hover:underline
-                "
-
-              >
-
-                ¿Ya tienes una cuenta? Inicia sesión
-
-
-              </button>
-
-
-
-            </>
-
-          )
-
-        }
-
+        </form>
 
 
       </div>
