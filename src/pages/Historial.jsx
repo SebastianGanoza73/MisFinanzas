@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { useMovimientos } from '../hooks/useMovimientos'
 import { useCategorias } from '../hooks/useCategorias'
 import { formatFecha, formatMoney } from '../lib/formatters'
@@ -16,13 +15,11 @@ const MESES = [
 export default function Historial() {
   const { movimientos, loading, updateMovimiento, deleteMovimiento } = useMovimientos()
   const { categorias } = useCategorias()
-  const [searchParams, setSearchParams] = useSearchParams()
 
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
   const [tipo, setTipo] = useState('todos')
   const [categoriaId, setCategoriaId] = useState('todas')
-  const [busqueda, setBusqueda] = useState(searchParams.get('q') ?? '')
   const [mes, setMes] = useState('todos')
   const [showFiltros, setShowFiltros] = useState(false)
 
@@ -31,26 +28,15 @@ export default function Historial() {
   const [borrando, setBorrando] = useState(null)
 
   const filtrados = useMemo(() => {
-    const q = busqueda.trim().toLowerCase()
     return movimientos.filter((m) => {
       if (desde && m.fecha < desde) return false
       if (hasta && m.fecha > hasta) return false
       if (tipo !== 'todos' && m.tipo !== tipo) return false
       if (categoriaId !== 'todas' && m.categoria_id !== categoriaId) return false
       if (mes !== 'todos' && String(new Date(m.fecha + 'T12:00:00').getMonth()) !== mes) return false
-      if (q) {
-        const nombre = (m.categorias?.nombre ?? '').toLowerCase()
-        const desc = (m.descripcion ?? '').toLowerCase()
-        if (!nombre.includes(q) && !desc.includes(q)) return false
-      }
       return true
     })
-  }, [movimientos, desde, hasta, tipo, categoriaId, mes, busqueda])
-
-  const limpiarBusqueda = () => {
-    setBusqueda('')
-    setSearchParams({})
-  }
+  }, [movimientos, desde, hasta, tipo, categoriaId, mes])
 
   const confirmarBorrado = async () => {
     await deleteMovimiento(borrando.id)
@@ -63,12 +49,11 @@ export default function Historial() {
     setTipo('todos')
     setCategoriaId('todas')
     setMes('todos')
-    limpiarBusqueda()
   }
 
   const filtrosActivos = [
     desde, hasta,
-    tipo !== 'todos', categoriaId !== 'todas', mes !== 'todos', busqueda.trim(),
+    tipo !== 'todos', categoriaId !== 'todas', mes !== 'todos',
   ].filter(Boolean).length
 
   return (
@@ -113,16 +98,19 @@ export default function Historial() {
 
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Buscar</label>
-                <div className="flex gap-2 mt-1.5">
-                  <input
-                    type="text"
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    placeholder="Categoría o descripción..."
-                    className="flex-1 px-3.5 py-3 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
-                  />
-                </div>
+                <label className="text-xs text-gray-500 dark:text-gray-400">Categoría</label>
+                <select
+                  value={categoriaId}
+                  onChange={(e) => setCategoriaId(e.target.value)}
+                  className="w-full mt-1.5 px-3.5 py-3 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                >
+                  <option value="todas">Todas</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.icono} {c.nombre}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -171,22 +159,6 @@ export default function Historial() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Categoría</label>
-                <select
-                  value={categoriaId}
-                  onChange={(e) => setCategoriaId(e.target.value)}
-                  className="w-full mt-1.5 px-3.5 py-3 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
-                >
-                  <option value="todas">Todas</option>
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.icono} {c.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="flex gap-2 mt-1">
                 <button
                   onClick={limpiarFiltros}
@@ -198,7 +170,7 @@ export default function Historial() {
                   onClick={() => setShowFiltros(false)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all shadow-sm"
                 >
-                  Aplicar
+                  Filtrar
                 </button>
               </div>
             </div>
