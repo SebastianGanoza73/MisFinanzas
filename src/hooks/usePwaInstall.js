@@ -4,6 +4,8 @@ import {
   getIsInstalled,
   markInstalled,
   subscribe,
+  marcarJustInstalled,
+  consumirJustInstalled,
 } from '../lib/pwaInstallService'
 
 // Se guarda en localStorage para que, aunque el usuario reabra la app
@@ -58,6 +60,10 @@ function esDispositivoMovil() {
  *   app ya se está ejecutando en modo standalone (ícono instalado).
  * - Recuerda la instalación entre sesiones para no volver a mostrar el
  *   botón, incluso si se reabre la app desde el navegador normal.
+ * - Recuerda si "se acaba de instalar" en localStorage (no solo en
+ *   estado de React), porque el service worker (registerType:
+ *   'autoUpdate') puede recargar la página justo en ese instante y
+ *   borrar el estado antes de que el toast se muestre.
  */
 export function usePwaInstall() {
   const [isMobile] = useState(esDispositivoMovil)
@@ -66,9 +72,9 @@ export function usePwaInstall() {
   // Distinto de isInstalled: isInstalled también es true en sesiones
   // futuras (por el flag en localStorage), mientras que justInstalled
   // solo se enciende una vez, en el momento exacto en que el usuario
-  // acepta el diálogo nativo — es la señal que usa el toast de éxito
-  // para saber cuándo mostrarse.
-  const [justInstalled, setJustInstalled] = useState(false)
+  // acepta el diálogo nativo (o justo después, si hubo una recarga) —
+  // es la señal que usa el toast de éxito para saber cuándo mostrarse.
+  const [justInstalled, setJustInstalled] = useState(consumirJustInstalled)
   const [isInstalled, setIsInstalled] = useState(() => {
     // Se resuelve una sola vez, en el primer render: si ya se está
     // ejecutando en modo standalone (ícono instalado), si el servicio
@@ -106,6 +112,11 @@ export function usePwaInstall() {
       const { outcome } = await prompt.userChoice
 
       if (outcome === 'accepted') {
+        // Se guarda ANTES que nada: si el service worker recarga la
+        // página justo después de esto, esta marca sobrevive y el
+        // toast igual se muestra al volver a montar la app.
+        marcarJustInstalled()
+
         // No hace falta esperar "appinstalled": ya sabemos el resultado.
         setIsInstalled(true)
         setJustInstalled(true)
