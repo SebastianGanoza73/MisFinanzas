@@ -83,45 +83,23 @@ export default function Inicio() {
           </div>
         </div>
 
-        {/* En mobile estos botones viven fijos abajo (como en Modo Express),
-            para que siempre estén a un toque de distancia del pulgar sin
-            "flotar" sueltos dentro de la tarjeta. En desktop, sin barra
-            inferior, se quedan aquí. */}
-        <div className="hidden sm:flex gap-3">
+        {/* Botones siempre dentro de la tarjeta (mobile y desktop), para que
+            nunca queden tapados ni floten sueltos sobre el contenido cuando
+            hay movimientos y la página crece. */}
+        <div className="flex gap-3">
           <button
             onClick={() => setModalTipo('ingreso')}
-            className="flex items-center gap-2 bg-income-500 hover:bg-income-600 text-white font-semibold px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-2 bg-income-500 hover:bg-income-600 text-white font-semibold px-5 py-3 sm:py-2.5 rounded-xl active:scale-95 transition-all shadow-sm"
           >
             <span className="w-5 h-5 rounded-full bg-brand-400 text-white flex items-center justify-center text-sm leading-none">+</span>
             Nuevo ingreso
           </button>
           <button
             onClick={() => setModalTipo('egreso')}
-            className="flex items-center gap-2 bg-loss-500 hover:bg-loss-600 text-white font-semibold px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-2 bg-loss-500 hover:bg-loss-600 text-white font-semibold px-5 py-3 sm:py-2.5 rounded-xl active:scale-95 transition-all shadow-sm"
           >
             <span className="w-5 h-5 rounded-full bg-white/25 text-white flex items-center justify-center text-sm leading-none">−</span>
             Nuevo egreso
-          </button>
-        </div>
-      </div>
-
-      {/* Barra fija de acciones, solo mobile: mismo patrón que Modo Express,
-          pegada justo encima del BottomNav para que quede siempre a mano. */}
-      <div className="sm:hidden fixed left-0 right-0 bottom-20 z-30 px-4">
-        <div className="flex gap-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl p-2 shadow-lg shadow-gray-900/10 border border-gray-100 dark:border-gray-800">
-          <button
-            onClick={() => setModalTipo('ingreso')}
-            className="flex-1 flex items-center justify-center gap-2 bg-income-500 hover:bg-income-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-all"
-          >
-            <span className="w-6 h-6 rounded-full bg-brand-400 text-white flex items-center justify-center text-base leading-none">+</span>
-            Ingreso
-          </button>
-          <button
-            onClick={() => setModalTipo('egreso')}
-            className="flex-1 flex items-center justify-center gap-2 bg-loss-500 hover:bg-loss-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-all"
-          >
-            <span className="w-6 h-6 rounded-full bg-white/25 text-white flex items-center justify-center text-base leading-none">−</span>
-            Egreso
           </button>
         </div>
       </div>
@@ -184,10 +162,6 @@ export default function Inicio() {
           </div>
         )}
       </div>
-
-      {/* Espacio para que la barra fija de acciones no tape el último
-          movimiento visible al hacer scroll hasta el final, en mobile. */}
-      <div className="h-20 sm:hidden" aria-hidden="true" />
 
       {modalTipo && (
         <MovimientoModal
