@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useMovimientos } from '../hooks/useMovimientos'
 import { formatMoney } from '../lib/formatters'
+import BalanceMensualChart from '../components/BalanceMensualChart'
 
 function enMes(fechaStr, mes, anio) {
   const fecha = new Date(fechaStr + 'T12:00:00')
@@ -56,6 +57,28 @@ export default function BalanceMensual() {
     const ahorro = ingresos - egresos
     const ahorroAnt = ingresosAnt - egresosAnt
 
+    // Puntos para el gráfico de tendencia del mes: saldo acumulado del
+    // mes movimiento a movimiento (sube en verde con cada ingreso, baja
+    // en rojo con cada egreso). Cada punto guarda su propio detalle para
+    // el tooltip al pasar el mouse/dedo por encima.
+    const movimientosDelMes = movimientos
+      .filter((m) => enMes(m.fecha, mesActual, anioActual))
+      .slice()
+      .sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0))
+
+    let acumulado = 0
+    const puntosMes = movimientosDelMes.map((m) => {
+      const monto = Number(m.monto)
+      acumulado += m.tipo === 'ingreso' ? monto : -monto
+      return {
+        fecha: m.fecha,
+        monto,
+        tipo: m.tipo,
+        motivo: m.categorias?.nombre ?? (m.descripcion || 'Sin categoría'),
+        saldo: acumulado,
+      }
+    })
+
     const topCategorias = Object.entries(categoriasGasto)
       .map(([nombre, data]) => ({
         nombre,
@@ -67,7 +90,7 @@ export default function BalanceMensual() {
 
     const nombreMes = hoy.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })
 
-    return { ingresos, egresos, ahorro, ingresosAnt, egresosAnt, ahorroAnt, topCategorias, nombreMes }
+    return { ingresos, egresos, ahorro, ingresosAnt, egresosAnt, ahorroAnt, topCategorias, nombreMes, puntosMes }
   }, [movimientos])
 
   const recomendacion = useMemo(() => {
@@ -87,9 +110,9 @@ export default function BalanceMensual() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-8">
-        <p className="text-xs uppercase tracking-wide text-brand-100 mb-2">Balance mensual</p>
-        <h1 className="text-2xl font-bold mb-1">Tu mes en números</h1>
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-6 sm:p-8 shadow-lg shadow-brand-900/15">
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 mb-2">Balance mensual</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight">Tu mes en números</h1>
         <p className="text-sm text-brand-100">
           Revisa tus ingresos, egresos y ahorro del mes, y compara con el mes anterior.
         </p>
@@ -99,11 +122,11 @@ export default function BalanceMensual() {
         <p className="text-gray-500 dark:text-gray-400 text-sm">Cargando...</p>
       ) : (
         <>
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-            <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1 capitalize">
+          <div className="bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1 capitalize">
               {stats.nombreMes}
             </p>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
               Balance del mes
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -126,10 +149,12 @@ export default function BalanceMensual() {
             </div>
           </div>
 
+          <BalanceMensualChart puntos={stats.puntosMes} />
+
           {stats.topCategorias.length > 0 && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-              <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1">Comparativa</p>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+            <div className="bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Comparativa</p>
+              <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-1">
                 Categorías principales
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -169,7 +194,7 @@ export default function BalanceMensual() {
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-6">
             <p className="text-xs uppercase text-amber-600 dark:text-amber-400 mb-1">Recomendaciones</p>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-3">
               Cómo mejorar tu ahorro
             </h2>
             <p className="text-sm text-gray-700 dark:text-gray-300">{recomendacion}</p>
