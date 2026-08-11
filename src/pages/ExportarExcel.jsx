@@ -11,11 +11,11 @@ function getRangoFechas(rango) {
   if (rango === 'semana') {
     const d = new Date(hoyStr + 'T00:00:00')
     d.setDate(d.getDate() - 7)
-    inicioStr = d.toISOString().slice(0, 10)
+    inicioStr = getFechaLocal(d)
   } else if (rango === 'mes') {
     const d = new Date(hoyStr + 'T00:00:00')
     d.setMonth(d.getMonth() - 1)
-    inicioStr = d.toISOString().slice(0, 10)
+    inicioStr = getFechaLocal(d)
   } else if (rango === 'todo') {
     inicioStr = '2000-01-01'
   } else {
@@ -169,25 +169,25 @@ export default function ExportarExcel() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `MisFinanzas_${new Date().toISOString().slice(0, 10)}.xlsx`
+    a.download = `MisFinanzas_${getFechaLocal()}.xlsx`
     a.click()
     URL.revokeObjectURL(url)
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-8">
-        <p className="text-xs uppercase tracking-wide text-brand-100 mb-2">Exportar datos</p>
-        <h1 className="text-2xl font-bold mb-1">Exporta tus movimientos a Excel</h1>
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-6 sm:p-8 shadow-lg shadow-brand-900/15">
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 mb-2">Exportar datos</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight">Exporta tus movimientos a Excel</h1>
         <p className="text-sm text-brand-100">
           Elige un rango de fechas y un tipo de movimiento, y descarga un archivo listo para tus registros.
         </p>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col gap-4">
+      <div className="bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl p-6 flex flex-col gap-4">
         <div>
-          <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-1">Configuración</p>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Configuración</p>
+          <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
             Rango y filtros de exportación
           </h2>
         </div>
@@ -197,7 +197,7 @@ export default function ExportarExcel() {
           <select
             value={rango}
             onChange={(e) => setRango(e.target.value)}
-            className="w-full mt-1 px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full mt-1.5 px-3.5 py-2.5 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
           >
             <option value="semana">Última semana</option>
             <option value="mes">Último mes</option>
@@ -214,7 +214,7 @@ export default function ExportarExcel() {
                 type="date"
                 value={desde}
                 onChange={(e) => setDesde(e.target.value)}
-                className="w-full mt-1 px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full mt-1.5 px-3.5 py-2.5 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
               />
             </div>
             <div>
@@ -223,7 +223,7 @@ export default function ExportarExcel() {
                 type="date"
                 value={hasta}
                 onChange={(e) => setHasta(e.target.value)}
-                className="w-full mt-1 px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full mt-1.5 px-3.5 py-2.5 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
               />
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function ExportarExcel() {
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value)}
-            className="w-full mt-1 px-3 py-2 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full mt-1.5 px-3.5 py-2.5 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
           >
             <option value="ambos">Ambos</option>
             <option value="ingreso">Ingreso</option>
@@ -248,7 +248,7 @@ export default function ExportarExcel() {
 
         <button
           onClick={handleExportar}
-          className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+          className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-3 rounded-xl active:scale-[0.98] transition-all shadow-sm"
         >
           📥 Descargar Excel
         </button>
