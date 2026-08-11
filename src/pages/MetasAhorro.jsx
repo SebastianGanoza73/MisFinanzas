@@ -55,9 +55,7 @@ export default function MetasAhorro() {
       )}
 
       <div>
-        <p className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-          Mis metas de ahorro
-        </p>
+        
 
         {loading ? (
           <p className="text-gray-500 dark:text-gray-400 text-sm">Cargando...</p>
