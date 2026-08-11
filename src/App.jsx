@@ -33,8 +33,11 @@ function ProtectedRoute({ children }) {
   if (loading) {
 
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Cargando...
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="flex flex-col items-center gap-3">
+          <span className="w-10 h-10 rounded-full border-[3px] border-brand-200 dark:border-brand-900 border-t-brand-600 dark:border-t-brand-400 animate-spin" />
+          <span className="text-sm font-medium text-gray-400 dark:text-gray-500">Cargando...</span>
+        </div>
       </div>
     )
 
@@ -88,8 +91,11 @@ function AuthenticatedRoute({ children }) {
   if (loading) {
 
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Cargando...
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="flex flex-col items-center gap-3">
+          <span className="w-10 h-10 rounded-full border-[3px] border-brand-200 dark:border-brand-900 border-t-brand-600 dark:border-t-brand-400 animate-spin" />
+          <span className="text-sm font-medium text-gray-400 dark:text-gray-500">Cargando...</span>
+        </div>
       </div>
     )
 
