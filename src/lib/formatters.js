@@ -21,7 +21,13 @@ export function formatMoney(n) {
 }
 
 export function getFechaLocal(date = new Date()) {
-  const offset = date.getTimezoneOffset()
-  const local = new Date(date.getTime() - offset * 60000)
-  return local.toISOString().slice(0, 10)
+  // Se arma el string YYYY-MM-DD leyendo directamente año/mes/día locales,
+  // sin pasar por UTC. El método anterior (restar el offset y usar
+  // toISOString) podía adelantar o atrasar un día según la hora y el
+  // huso horario del dispositivo — por eso Modo Express a veces mostraba
+  // "10 de agosto" cuando en realidad era 9.
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
