@@ -9,49 +9,39 @@ const links = [
   { to: '/exportar', label: 'Exportar a Excel' },
 ]
 
-export default function Sidebar({ open, onClose }) {
+// Solo desktop: en mobile la navegación vive en BottomNav (barra fija
+// inferior), ya no hay drawer de hamburguesa que se despliega.
+export default function Sidebar() {
   return (
-    <>
-      {/* Fondo oscuro solo en mobile, cuando el panel está abierto */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 sm:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      <aside
-        className={`
-          fixed sm:static top-0 left-0 h-screen sm:min-h-screen w-64 shrink-0
-          border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6
-          z-50 transition-transform duration-200
-          ${open ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'}
-        `}
-      >
-        <div className="flex items-center gap-2 mb-8">
-          <span className="text-brand-600 dark:text-brand-400 text-xl">📈</span>
-          <span className="font-bold text-lg text-gray-900 dark:text-gray-100">MisFinanzas</span>
-        </div>
-        <nav className="flex flex-col gap-1">
-          {links.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-400'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
-                }`
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
-    </>
+    <aside
+      className="
+        hidden sm:block sm:static top-0 left-0 h-screen sm:min-h-screen w-64 shrink-0
+        bg-white dark:bg-gray-900 p-5
+        shadow-[1px_0_0_0_rgba(0,0,0,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]
+      "
+    >
+      <div className="flex items-center gap-2.5 mb-8 px-2">
+        <span className="text-brand-600 dark:text-brand-400 text-2xl">📈</span>
+        <span className="font-bold text-lg text-gray-900 dark:text-gray-100 tracking-tight">MisFinanzas</span>
+      </div>
+      <nav className="flex flex-col gap-1">
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.end}
+            className={({ isActive }) =>
+              `relative px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                isActive
+                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800/60'
+              }`
+            }
+          >
+            {link.label}
+          </NavLink>
+        ))}
+      </nav>
+    </aside>
   )
 }
