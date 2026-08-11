@@ -4,6 +4,7 @@ import MetaModal from '../components/MetaModal'
 import ConfirmModal from '../components/ConfirmModal'
 import MetaCard from '../components/MetaCard'
 import MetaCarousel from '../components/MetaCarousel'
+import MetasListModal from '../components/MetasListModal'
 
 export default function MetasAhorro() {
   const { metas, loading, addMeta, updateMeta, deleteMeta } = useMetas()
@@ -35,7 +36,8 @@ export default function MetasAhorro() {
 
       {/* En mobile solo vive el slider + botón "Ver todos": más limpio que
           apilar una tarjeta tras otra. La lista completa (con editar/eliminar
-          en cada tarjeta) se muestra solo si el usuario la pide. */}
+          en cada tarjeta) se abre en un modal aparte, para no alargar la
+          página aunque haya muchas metas. */}
       {!loading && metas.length > 0 && (
         <div className="sm:hidden">
           <MetaCarousel
@@ -44,11 +46,10 @@ export default function MetasAhorro() {
             onEliminar={(m) => setBorrando(m)}
           />
           <button
-            onClick={() => setVerTodos((v) => !v)}
+            onClick={() => setVerTodos(true)}
             className="w-full mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-[0.99] transition-all"
           >
-            {verTodos ? 'Ocultar lista' : `Ver todos (${metas.length})`}
-            <span className={`transition-transform ${verTodos ? 'rotate-180' : ''}`}>⌄</span>
+            Ver todos ({metas.length})
           </button>
         </div>
       )}
@@ -84,23 +85,22 @@ export default function MetasAhorro() {
             ))}
           </div>
         )}
-
-        {/* En mobile, la lista completa (con editar/eliminar) solo aparece
-            si el usuario toca "Ver todos". */}
-        {!loading && metas.length > 0 && verTodos && (
-          <div className="sm:hidden flex flex-col gap-3 mt-4 animate-slide-up">
-            {metas.map((m) => (
-              <MetaCard
-                key={m.id}
-                meta={m}
-                compact
-                onEditar={() => setEditando(m)}
-                onEliminar={() => setBorrando(m)}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {verTodos && (
+        <MetasListModal
+          metas={metas}
+          onClose={() => setVerTodos(false)}
+          onEditar={(m) => {
+            setEditando(m)
+            setVerTodos(false)
+          }}
+          onEliminar={(m) => {
+            setBorrando(m)
+            setVerTodos(false)
+          }}
+        />
+      )}
 
       {creando && (
         <MetaModal onClose={() => setCreando(false)} onSave={addMeta} />
