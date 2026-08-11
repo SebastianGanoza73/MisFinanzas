@@ -1,127 +1,103 @@
-import { useState } from 'react'
-import { useMetas } from '../hooks/useMetas'
-import MetaModal from '../components/MetaModal'
-import ConfirmModal from '../components/ConfirmModal'
-import MetaCard from '../components/MetaCard'
-import MetaCarousel from '../components/MetaCarousel'
-import MetasListModal from '../components/MetasListModal'
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 
-export default function MetasAhorro() {
-  const { metas, loading, addMeta, updateMeta, deleteMeta } = useMetas()
-  const [creando, setCreando] = useState(false)
-  const [editando, setEditando] = useState(null)
-  const [borrando, setBorrando] = useState(null)
-  const [verTodos, setVerTodos] = useState(false)
+export function useMetas() {
+  const { user } = useAuth()
+  const [metas, setMetas] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const confirmarBorrado = async () => {
-    await deleteMeta(borrando.id)
-    setBorrando(null)
+  const fetchMetas = useCallback(async () => {
+    if (!user) return
+    setLoading(true)
+
+    const { data: metasData, error } = await supabase
+      .from('metas_ahorro')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      setLoading(false)
+      return
+    }
+
+    // La app es visual (no está conectada al banco), así que en vez de
+    // pedirle a la persona que "aporte" manualmente a cada meta, el
+    // progreso de CADA meta se calcula de forma independiente a partir del
+    // ahorro neto disponible (ingresos - egresos): cada meta muestra su
+    // propio porcentaje hasta su propio objetivo, usando el mismo ahorro
+    // total. (Antes se repartía como una sola bolsa entre metas por
+    // prioridad, así que si dos metas compartían prioridad, solo la más
+    // antigua mostraba avance y a la otra "no le tocaba" nada — ya no.)
+    const { data: movimientos } = await supabase
+      .from('movimientos')
+      .select('tipo, monto, fecha')
+      .eq('user_id', user.id)
+
+    let ahorroDisponible = 0
+    const ahorroPorMes = {}
+    movimientos?.forEach((m) => {
+      const monto = Number(m.monto)
+      ahorroDisponible += m.tipo === 'ingreso' ? monto : -monto
+
+      const clave = m.fecha.slice(0, 7) // YYYY-MM
+      ahorroPorMes[clave] = (ahorroPorMes[clave] ?? 0) + (m.tipo === 'ingreso' ? monto : -monto)
+    })
+    ahorroDisponible = Math.max(0, ahorroDisponible)
+
+    const ahora = new Date()
+    const claveMesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
+    const mesAnteriorDate = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1)
+    const claveMesAnterior = `${mesAnteriorDate.getFullYear()}-${String(mesAnteriorDate.getMonth() + 1).padStart(2, '0')}`
+    const aporteEsteMesTotal = ahorroPorMes[claveMesActual] ?? 0
+    const aporteMesAnteriorTotal = ahorroPorMes[claveMesAnterior] ?? 0
+
+    let tendencia = 'flat'
+    if (aporteEsteMesTotal > aporteMesAnteriorTotal) tendencia = 'up'
+    else if (aporteEsteMesTotal < aporteMesAnteriorTotal) tendencia = 'down'
+
+    const metasConProgreso = metasData.map((m) => ({
+      ...m,
+      monto_actual: Math.min(Number(m.monto_objetivo), ahorroDisponible),
+      aporteEsteMes: aporteEsteMesTotal,
+      aporteMesAnterior: aporteMesAnteriorTotal,
+      tendencia,
+    }))
+
+    setMetas(metasConProgreso)
+    setLoading(false)
+  }, [user])
+
+  useEffect(() => {
+    fetchMetas()
+  }, [fetchMetas])
+
+  const addMeta = async (meta) => {
+    const { error } = await supabase
+      .from('metas_ahorro')
+      .insert([{ ...meta, user_id: user.id }])
+    if (!error) await fetchMetas()
+    return { error }
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-6 sm:p-8 shadow-lg shadow-brand-900/15">
-        <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 mb-2">Metas de ahorro</p>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight">Alcanza tus metas, un aporte a la vez</h1>
-        <p className="text-sm text-brand-100 mb-4">
-          El progreso se actualiza solo con tus ingresos y egresos registrados: no necesitas aportar manualmente.
-        </p>
-        <button
-          onClick={() => setCreando(true)}
-          className="bg-white text-brand-700 font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-50 active:scale-95 transition-all shadow-sm"
-        >
-          + Nueva meta
-        </button>
-      </div>
+  const updateMeta = async (id, cambios) => {
+    const { error } = await supabase
+      .from('metas_ahorro')
+      .update(cambios)
+      .eq('id', id)
+    if (!error) await fetchMetas()
+    return { error }
+  }
 
-      {/* En mobile solo vive el slider + botón "Ver todos": más limpio que
-          apilar una tarjeta tras otra. La lista completa (con editar/eliminar
-          en cada tarjeta) se abre en un modal aparte, para no alargar la
-          página aunque haya muchas metas. */}
-      {!loading && metas.length > 0 && (
-        <div className="sm:hidden">
-          <MetaCarousel
-            metas={metas}
-            onEditar={(m) => setEditando(m)}
-            onEliminar={(m) => setBorrando(m)}
-          />
-          <button
-            onClick={() => setVerTodos(true)}
-            className="w-full mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-[0.99] transition-all"
-          >
-            Ver todos ({metas.length})
-          </button>
-        </div>
-      )}
+  const deleteMeta = async (id) => {
+    const { error } = await supabase
+      .from('metas_ahorro')
+      .delete()
+      .eq('id', id)
+    if (!error) await fetchMetas()
+    return { error }
+  }
 
-      <div>
-        <p className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-          Mis metas de ahorro
-        </p>
-
-        {loading ? (
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Cargando...</p>
-        ) : metas.length === 0 ? (
-          <div className="text-center py-14 bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl">
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-              Aún no tienes metas de ahorro
-            </p>
-            <button
-              onClick={() => setCreando(true)}
-              className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm"
-            >
-              + Crear mi primera meta
-            </button>
-          </div>
-        ) : (
-          <div className="hidden sm:grid sm:grid-cols-2 gap-4">
-            {metas.map((m) => (
-              <MetaCard
-                key={m.id}
-                meta={m}
-                onEditar={() => setEditando(m)}
-                onEliminar={() => setBorrando(m)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {verTodos && (
-        <MetasListModal
-          metas={metas}
-          onClose={() => setVerTodos(false)}
-          onEditar={(m) => {
-            setEditando(m)
-            setVerTodos(false)
-          }}
-          onEliminar={(m) => {
-            setBorrando(m)
-            setVerTodos(false)
-          }}
-        />
-      )}
-
-      {creando && (
-        <MetaModal onClose={() => setCreando(false)} onSave={addMeta} />
-      )}
-
-      {editando && (
-        <MetaModal
-          meta={editando}
-          onClose={() => setEditando(null)}
-          onSave={(cambios) => updateMeta(editando.id, cambios)}
-        />
-      )}
-
-      {borrando && (
-        <ConfirmModal
-          title="Eliminar meta"
-          message={`¿Seguro que quieres eliminar la meta "${borrando.nombre}"?`}
-          onConfirm={confirmarBorrado}
-          onCancel={() => setBorrando(null)}
-        />
-      )}
-    </div>
-  )
+  return { metas, loading, addMeta, updateMeta, deleteMeta, refetch: fetchMetas }
 }
