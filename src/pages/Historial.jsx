@@ -81,10 +81,10 @@ export default function Historial() {
 
       {showFiltros && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-end sm:items-center justify-center z-50 animate-fade-in"
+          className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 px-4 animate-fade-in"
           onMouseDown={(e) => e.target === e.currentTarget && setShowFiltros(false)}
         >
-          <div className="w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-3xl shadow-2xl shadow-black/10 p-6 max-h-[85vh] overflow-y-auto animate-slide-up sm:animate-scale-in">
+          <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-2xl shadow-black/10 p-6 sm:p-7 max-h-[85vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Filtros</h2>
               <button
