@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'MisFinanzas',
         short_name: 'MisFinanzas',
         description: 'Controla tus ingresos, egresos y metas de ahorro',
-        theme_color: '#059669',
-        background_color: '#ffffff',
+        theme_color: '#166650',
+        background_color: '#082720',
         display: 'standalone',
         start_url: '/',
         icons: [
