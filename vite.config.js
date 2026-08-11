@@ -9,6 +9,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Sin esto, el service worker (y por lo tanto el evento
+      // beforeinstallprompt) solo se activa en un build de producción
+      // (npm run build / vite preview). Con devOptions.enabled en true,
+      // también se activa corriendo "npm run dev", para poder probar el
+      // botón de instalación sin tener que buildear cada vez.
+      devOptions: {
+        enabled: true,
+      },
       manifest: {
         name: 'MisFinanzas',
         short_name: 'MisFinanzas',
