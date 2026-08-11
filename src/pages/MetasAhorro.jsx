@@ -21,11 +21,18 @@ export default function MetasAhorro() {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 text-white p-6 sm:p-8 shadow-lg shadow-brand-900/15">
-        <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 mb-2">Metas de ahorro</p>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight">Alcanza tus metas, un aporte a la vez</h1>
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 mb-2">
+          Metas de ahorro
+        </p>
+
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 tracking-tight">
+          Alcanza tus metas, un aporte a la vez
+        </h1>
+
         <p className="text-sm text-brand-100 mb-4">
           El progreso se actualiza solo con tus ingresos y egresos registrados: no necesitas aportar manualmente.
         </p>
+
         <button
           onClick={() => setCreando(true)}
           className="bg-white text-brand-700 font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-50 active:scale-95 transition-all shadow-sm"
@@ -34,10 +41,7 @@ export default function MetasAhorro() {
         </button>
       </div>
 
-      {/* En mobile solo vive el slider + botón "Ver todos": más limpio que
-          apilar una tarjeta tras otra. La lista completa (con editar/eliminar
-          en cada tarjeta) se abre en un modal aparte, para no alargar la
-          página aunque haya muchas metas. */}
+      {/* En mobile solo vive el slider + botón "Ver todos" */}
       {!loading && metas.length > 0 && (
         <div className="sm:hidden">
           <MetaCarousel
@@ -45,6 +49,7 @@ export default function MetasAhorro() {
             onEditar={(m) => setEditando(m)}
             onEliminar={(m) => setBorrando(m)}
           />
+
           <button
             onClick={() => setVerTodos(true)}
             className="w-full mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400 py-2.5 rounded-xl border border-dashed border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 active:scale-[0.99] transition-all"
@@ -55,17 +60,16 @@ export default function MetasAhorro() {
       )}
 
       <div>
-        <p className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-          Mis metas de ahorro
-        </p>
-
         {loading ? (
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Cargando...</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            Cargando...
+          </p>
         ) : metas.length === 0 ? (
           <div className="text-center py-14 bg-white dark:bg-gray-900 shadow-sm shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-gray-800 rounded-2xl">
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
               Aún no tienes metas de ahorro
             </p>
+
             <button
               onClick={() => setCreando(true)}
               className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl active:scale-95 transition-all shadow-sm"
@@ -103,7 +107,10 @@ export default function MetasAhorro() {
       )}
 
       {creando && (
-        <MetaModal onClose={() => setCreando(false)} onSave={addMeta} />
+        <MetaModal
+          onClose={() => setCreando(false)}
+          onSave={addMeta}
+        />
       )}
 
       {editando && (
