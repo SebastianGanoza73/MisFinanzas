@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { getFechaLocal } from '../lib/formatters'
+
+// Orden de prioridad para repartir el ahorro disponible entre metas.
+const ORDEN_PRIORIDAD = { alta: 0, media: 1, baja: 2 }
 
 export function useMetas() {
   const { user } = useAuth()
@@ -16,27 +18,68 @@ export function useMetas() {
       .from('metas_ahorro')
       .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
 
     if (error) {
       setLoading(false)
       return
     }
 
-    const { data: aportes } = await supabase
+    // La app es visual (no está conectada al banco), así que en vez de
+    // pedirle a la persona que "aporte" manualmente a cada meta, el
+    // progreso se calcula solo a partir de lo que ya registró como
+    // ingresos y egresos: el ahorro neto disponible se reparte entre
+    // las metas por prioridad (alta primero) y luego por antigüedad,
+    // llenando cada una hasta su objetivo antes de pasar a la siguiente.
+    // Si hay egresos, el ahorro disponible baja y el progreso baja con él.
+    const { data: movimientos } = await supabase
       .from('movimientos')
-      .select('meta_id, monto')
+      .select('tipo, monto, fecha')
       .eq('user_id', user.id)
-      .not('meta_id', 'is', null)
 
-    const sumas = {}
-    aportes?.forEach((a) => {
-      sumas[a.meta_id] = (sumas[a.meta_id] ?? 0) + Number(a.monto)
+    let ahorroDisponible = 0
+    const ahorroPorMes = {}
+    movimientos?.forEach((m) => {
+      const monto = Number(m.monto)
+      ahorroDisponible += m.tipo === 'ingreso' ? monto : -monto
+
+      const clave = m.fecha.slice(0, 7) // YYYY-MM
+      ahorroPorMes[clave] = (ahorroPorMes[clave] ?? 0) + (m.tipo === 'ingreso' ? monto : -monto)
     })
+    ahorroDisponible = Math.max(0, ahorroDisponible)
+
+    const ahora = new Date()
+    const claveMesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
+    const mesAnteriorDate = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1)
+    const claveMesAnterior = `${mesAnteriorDate.getFullYear()}-${String(mesAnteriorDate.getMonth() + 1).padStart(2, '0')}`
+    const aporteEsteMesTotal = ahorroPorMes[claveMesActual] ?? 0
+    const aporteMesAnteriorTotal = ahorroPorMes[claveMesAnterior] ?? 0
+
+    const ordenadas = [...metasData].sort((a, b) => {
+      const p = ORDEN_PRIORIDAD[a.prioridad] - ORDEN_PRIORIDAD[b.prioridad]
+      if (p !== 0) return p
+      return new Date(a.created_at) - new Date(b.created_at)
+    })
+
+    let restante = ahorroDisponible
+    const asignado = {}
+    ordenadas.forEach((m) => {
+      const objetivo = Number(m.monto_objetivo)
+      const monto = Math.min(objetivo, restante)
+      asignado[m.id] = monto
+      restante -= monto
+    })
+
+    let tendencia = 'flat'
+    if (aporteEsteMesTotal > aporteMesAnteriorTotal) tendencia = 'up'
+    else if (aporteEsteMesTotal < aporteMesAnteriorTotal) tendencia = 'down'
 
     const metasConProgreso = metasData.map((m) => ({
       ...m,
-      monto_actual: sumas[m.id] ?? 0,
+      monto_actual: asignado[m.id] ?? 0,
+      aporteEsteMes: aporteEsteMesTotal,
+      aporteMesAnterior: aporteMesAnteriorTotal,
+      tendencia,
     }))
 
     setMetas(metasConProgreso)
@@ -73,32 +116,5 @@ export function useMetas() {
     return { error }
   }
 
-  const aportarAMeta = async (id, monto) => {
-    const meta = metas.find((m) => m.id === id)
-    if (!meta) return { error: { message: 'Meta no encontrada' } }
-
-    const { data: categoriaAhorro } = await supabase
-      .from('categorias')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('nombre', 'Ahorro')
-      .single()
-
-    const { error } = await supabase.from('movimientos').insert([
-      {
-        user_id: user.id,
-        tipo: 'egreso',
-        monto,
-        categoria_id: categoriaAhorro?.id ?? null,
-        meta_id: id,
-        descripcion: `Aporte a "${meta.nombre}"`,
-        fecha: getFechaLocal(),
-      },
-    ])
-
-    if (!error) await fetchMetas()
-    return { error }
-  }
-
-  return { metas, loading, addMeta, updateMeta, deleteMeta, aportarAMeta, refetch: fetchMetas }
+  return { metas, loading, addMeta, updateMeta, deleteMeta, refetch: fetchMetas }
 }
