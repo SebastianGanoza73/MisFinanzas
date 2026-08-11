@@ -3,15 +3,162 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-400: #34d399;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  --color-brand-900: #064e3b;
+  /* Paleta de marca completa. Antes faltaban shades intermedios (200, 300, 800),
+     lo que hacía que clases como "to-brand-800" no generaran CSS válido.
+     Además, el verde es más profundo y menos neón: se ve más "fintech premium"
+     (Wise, Mercury) y menos "app de plantilla". */
+  --color-brand-50: #f0faf6;
+  --color-brand-100: #d9f2e6;
+  --color-brand-200: #b0e4cc;
+  --color-brand-300: #7ecfaf;
+  --color-brand-400: #4bb691;
+  --color-brand-500: #279b76;
+  --color-brand-600: #1a7f61;
+  --color-brand-700: #166650;
+  --color-brand-800: #145142;
+  --color-brand-900: #0f3f34;
+  --color-brand-950: #082720;
+
+  /* Rojo de egresos, alineado en profundidad con el nuevo verde */
+  --color-loss-50: #fef2f2;
+  --color-loss-100: #fee2e2;
+  --color-loss-200: #fecaca;
+  --color-loss-400: #f87171;
+  --color-loss-500: #ef4444;
+  --color-loss-600: #dc2626;
+  --color-loss-700: #b91c1c;
+  --color-loss-900: #7f1d1d;
+
+  /* Tamaño de fuente base ligeramente mayor (16px -> 17px). Como Tailwind usa
+     rem, esto sube TODA la tipografía de la app ~6% de forma proporcional,
+     sin romper el layout ni exagerar el tamaño. */
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.6;
+
+  /* Fondo gris neutro (antes un hueso/crema cálido) */
+  --color-white: #ffffff;
+  --color-gray-50: #f0f1f3;
+
+  /* Azul para ingresos (antes usaban el verde de marca). Rojo de egresos
+     ya existía (loss-*), pero ahora se usa también en montos, no solo en
+     estados de error. */
+  --color-income-50: #eff6ff;
+  --color-income-100: #dbeafe;
+  --color-income-200: #bfdbfe;
+  --color-income-400: #60a5fa;
+  --color-income-500: #3b82f6;
+  --color-income-600: #2563eb;
+  --color-income-700: #1d4ed8;
+  --color-income-900: #1e3a8a;
+}
+
+html {
+  font-size: 17px;
+  scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200;
+  @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200;
+  -webkit-font-smoothing: antialiased;
+  /* Quita el "flash" gris nativo del navegador al tocar botones en mobile,
+     que es justamente lo que hace que una web se sienta "web" y no "app". */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Foco visible consistente y accesible en toda la app (antes solo los
+   inputs tenían anillo de foco; botones y links dependían del estilo
+   por-defecto feo del navegador). */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Scrollbar más discreto, look premium */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Animaciones de entrada reutilizables. Sutiles a propósito: la idea es que
+   se sientan "premium" (Yape/Instagram), no que llamen la atención por sí
+   mismas. Se usan en modales, tarjetas y transiciones de página. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.18s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Transición al cambiar de página dentro del layout (Inicio -> Historial,
+   etc). Se aplica con key={pathname} sobre el <main>, así cada vista entra
+   con el mismo "aire" que un modal, en vez de aparecer de golpe. */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in {
+  animation: page-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Flecha de tendencia en metas de ahorro: entra con un pequeño rebote */
+@keyframes trend-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-trend-pop {
+  animation: trend-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-slide-up,
+  .animate-page-in,
+  .animate-trend-pop {
+    animation: none;
+  }
+}
+
+/* Carrusel de metas (Inicio / Modo Express): pista deslizable con snap,
+   igual de "clean" que el carrusel de promos de Yape. */
+.carousel-track {
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.carousel-slide {
+  width: 100%;
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel-track {
+    transition: none;
+  }
 }
